@@ -1,0 +1,22 @@
+
+
+
+async function loadData() {
+    const response = await fetch(SHEET_URL);
+    const data = await response.json();
+
+try{
+let r=await fetch(SHEET_URL);let d=await r.json();
+let t=0,b=document.getElementById('tbody');b.innerHTML='';
+d.forEach(x=>{let n=Number((x.Nominal||0).toString().replace(/[^0-9.-]/g,''));t+=n;
+b.innerHTML+=`<tr><td>${x.Tanggal||''}</td><td>${x.Nama||''}</td><td>${n.toLocaleString('id-ID')}</td><td>${x.Keterangan||''}</td></tr>`;});
+document.getElementById('total').innerText='Rp'+t.toLocaleString('id-ID');
+let p=Math.min(100,t/TARGET*100);let bar=document.getElementById('bar');bar.style.width=p+'%';bar.innerText=p.toFixed(1)+'%';
+}catch(e){console.log(e)}
+}
+
+// Pertama kali
+loadData();
+
+// Refresh setiap 30 detik
+setInterval(loadData, 30000);
