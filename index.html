@@ -1,45 +1,74 @@
-
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
 
     <title>Dashboard Kas DKM</title>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ================= BOOTSTRAP ================= -->
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+
+    <!-- ================= CSS ================= -->
+
+    <link rel="stylesheet"
+          href="css/style.css">
+
 </head>
+
 
 <body>
 
-<!-- ================= HEADER ================= -->
+
+<!-- ================================================= -->
+<!-- HEADER -->
+<!-- ================================================= -->
 
 <header class="header-donasi">
 
     <div class="container text-center">
 
-        <img src="img/logo.png"
-             class="logo-masjid mb-3"
-             alt="Logo DKM">
+        <img
+            src="img/logo.png"
+            class="logo-masjid mb-3"
+            alt="Logo DKM"
+        >
+
 
         <h1 class="judul-donasi">
+
             LAPORAN KAS DKM<br>
+
             MUSHOLLA NURUL HUDA PONDOK DEWATA
+
         </h1>
 
+
         <p class="subjudul">
+
             Transparansi dan informasi keuangan kas DKM
+
         </p>
 
+
         <div class="update-info">
+
             Data kas otomatis diperbarui setiap 30 detik
+
         </div>
 
     </div>
@@ -47,11 +76,21 @@
 </header>
 
 
-<!-- ================= RINGKASAN KAS ================= -->
+
+<!-- ================================================= -->
+<!-- CONTENT -->
+<!-- ================================================= -->
 
 <div class="container py-4">
 
+
+
+    <!-- ================================================= -->
+    <!-- RINGKASAN KAS -->
+    <!-- ================================================= -->
+
     <div class="row g-4">
+
 
         <!-- KAS MASUK -->
 
@@ -62,12 +101,19 @@
                 <div class="card-body text-center">
 
                     <h5 class="text-muted">
+
                         Kas Masuk
+
                     </h5>
 
-                    <h2 id="totalMasuk"
-                        class="text-success fw-bold">
+
+                    <h2
+                        id="totalMasuk"
+                        class="text-success fw-bold"
+                    >
+
                         Rp0
+
                     </h2>
 
                 </div>
@@ -75,6 +121,7 @@
             </div>
 
         </div>
+
 
 
         <!-- KAS KELUAR -->
@@ -86,12 +133,19 @@
                 <div class="card-body text-center">
 
                     <h5 class="text-muted">
+
                         Kas Keluar
+
                     </h5>
 
-                    <h2 id="totalKeluar"
-                        class="text-danger fw-bold">
+
+                    <h2
+                        id="totalKeluar"
+                        class="text-danger fw-bold"
+                    >
+
                         Rp0
+
                     </h2>
 
                 </div>
@@ -101,7 +155,8 @@
         </div>
 
 
-        <!-- SALDO -->
+
+        <!-- SALDO AKHIR -->
 
         <div class="col-md-4">
 
@@ -110,12 +165,19 @@
                 <div class="card-body text-center">
 
                     <h5 class="text-muted">
+
                         Saldo Akhir
+
                     </h5>
 
-                    <h2 id="saldo"
-                        class="text-primary fw-bold">
+
+                    <h2
+                        id="saldo"
+                        class="text-primary fw-bold"
+                    >
+
                         Rp0
+
                     </h2>
 
                 </div>
@@ -127,120 +189,185 @@
     </div>
 
 
-   <!-- ================= FILTER PERIODE ================= -->
 
-<div class="card card-donasi mt-4">
+    <!-- ================================================= -->
+    <!-- FILTER PERIODE -->
+    <!-- ================================================= -->
 
-    <div class="card-body">
+    <div class="card card-donasi mt-4">
 
-        <div class="row g-3 align-items-end">
-
-            <!-- TANGGAL MULAI -->
-
-            <div class="col-md-4">
-
-                <label for="tanggalMulai"
-                       class="form-label fw-bold">
-
-                    Dari Tanggal
-
-                </label>
-
-                <input type="date"
-                       id="tanggalMulai"
-                       class="form-control">
-
-            </div>
+        <div class="card-body">
 
 
-            <!-- TANGGAL AKHIR -->
+            <h5 class="fw-bold mb-3">
 
-            <div class="col-md-4">
+                Filter Periode Laporan
 
-                <label for="tanggalAkhir"
-                       class="form-label fw-bold">
-
-                    Sampai Tanggal
-
-                </label>
-
-                <input type="date"
-                       id="tanggalAkhir"
-                       class="form-control">
-
-            </div>
+            </h5>
 
 
-            <!-- BUTTON -->
+            <div class="row g-3 align-items-end">
 
-            <div class="col-md-4">
 
-                <div class="d-flex gap-2">
+                <!-- TANGGAL MULAI -->
 
-                    <button type="button"
+                <div class="col-md-4">
+
+                    <label
+                        for="tanggalMulai"
+                        class="form-label fw-bold"
+                    >
+
+                        Dari Tanggal
+
+                    </label>
+
+
+                    <input
+                        type="date"
+                        id="tanggalMulai"
+                        class="form-control"
+                    >
+
+                </div>
+
+
+
+                <!-- TANGGAL AKHIR -->
+
+                <div class="col-md-4">
+
+                    <label
+                        for="tanggalAkhir"
+                        class="form-label fw-bold"
+                    >
+
+                        Sampai Tanggal
+
+                    </label>
+
+
+                    <input
+                        type="date"
+                        id="tanggalAkhir"
+                        class="form-control"
+                    >
+
+                </div>
+
+
+
+                <!-- BUTTON -->
+
+                <div class="col-md-4">
+
+                    <div class="d-flex gap-2">
+
+
+                        <button
+                            type="button"
                             id="btnTampilkan"
-                            class="btn btn-primary flex-fill">
+                            class="btn btn-primary flex-fill"
+                        >
 
-                        Tampilkan
+                            Tampilkan
 
-                    </button>
+                        </button>
 
-                    <button type="button"
+
+                        <button
+                            type="button"
                             id="btnSemua"
-                            class="btn btn-secondary flex-fill">
+                            class="btn btn-secondary flex-fill"
+                        >
+
+                            Semua Data
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ================================================= -->
+            <!-- INFO PERIODE -->
+            <!-- ================================================= -->
+
+            <div class="row text-center mt-4">
+
+
+                <!-- PERIODE -->
+
+                <div class="col-md-4">
+
+                    <small class="text-muted">
+
+                        Periode Laporan
+
+                    </small>
+
+
+                    <div
+                        id="periode"
+                        class="fw-bold"
+                    >
 
                         Semua Data
 
-                    </button>
+                    </div>
 
                 </div>
 
-            </div>
-
-        </div>
 
 
-        <!-- INFO PERIODE -->
+                <!-- JUMLAH TRANSAKSI -->
 
-        <div class="row text-center mt-4">
+                <div class="col-md-4">
 
-            <div class="col-md-4">
+                    <small class="text-muted">
 
-                <small class="text-muted">
-                    Periode Laporan
-                </small>
+                        Jumlah Transaksi
 
-                <div id="periode"
-                     class="fw-bold">
-                    Semua Data
+                    </small>
+
+
+                    <div
+                        id="jumlahTransaksi"
+                        class="fw-bold"
+                    >
+
+                        0
+
+                    </div>
+
                 </div>
 
-            </div>
 
 
-            <div class="col-md-4">
+                <!-- UPDATE -->
 
-                <small class="text-muted">
-                    Jumlah Transaksi
-                </small>
+                <div class="col-md-4">
 
-                <div id="jumlahTransaksi"
-                     class="fw-bold">
-                    0
-                </div>
+                    <small class="text-muted">
 
-            </div>
+                        Update Terakhir
+
+                    </small>
 
 
-            <div class="col-md-4">
+                    <div
+                        id="lastUpdate"
+                        class="fw-bold"
+                    >
 
-                <small class="text-muted">
-                    Update Terakhir
-                </small>
+                        -
 
-                <div id="lastUpdate"
-                     class="fw-bold">
-                    -
+                    </div>
+
                 </div>
 
             </div>
@@ -249,24 +376,32 @@
 
     </div>
 
-</div>
 
-    <!-- ================= KAS MASUK ================= -->
+
+    <!-- ================================================= -->
+    <!-- KAS MASUK -->
+    <!-- ================================================= -->
 
     <div class="card card-donasi mt-4">
+
 
         <div class="card-header bg-success text-white">
 
             <h5 class="mb-0">
-                <i class="bi bi-arrow-down-circle"></i>
+
                 Rincian Kas Masuk
+
             </h5>
 
         </div>
 
+
+
         <div class="card-body table-responsive">
 
+
             <table class="table table-hover align-middle">
+
 
                 <thead class="table-success">
 
@@ -281,19 +416,25 @@
                         <th>Keterangan</th>
 
                         <th class="text-end">
+
                             Nominal
+
                         </th>
 
                     </tr>
 
                 </thead>
 
+
+
                 <tbody id="tbodyMasuk">
 
                     <tr>
 
-                        <td colspan="5"
-                            class="text-center text-muted">
+                        <td
+                            colspan="5"
+                            class="text-center text-muted"
+                        >
 
                             Memuat data...
 
@@ -303,19 +444,27 @@
 
                 </tbody>
 
+
+
                 <tfoot>
 
                     <tr class="table-success fw-bold">
 
-                        <td colspan="4"
-                            class="text-end">
+
+                        <td
+                            colspan="4"
+                            class="text-end"
+                        >
 
                             TOTAL KAS MASUK
 
                         </td>
 
-                        <td id="footerMasuk"
-                            class="text-end">
+
+                        <td
+                            id="footerMasuk"
+                            class="text-end"
+                        >
 
                             Rp0
 
@@ -325,6 +474,7 @@
 
                 </tfoot>
 
+
             </table>
 
         </div>
@@ -332,21 +482,31 @@
     </div>
 
 
-    <!-- ================= KAS KELUAR ================= -->
+
+    <!-- ================================================= -->
+    <!-- KAS KELUAR -->
+    <!-- ================================================= -->
 
     <div class="card card-donasi mt-4">
+
 
         <div class="card-header bg-danger text-white">
 
             <h5 class="mb-0">
+
                 Rincian Kas Keluar
+
             </h5>
 
         </div>
 
+
+
         <div class="card-body table-responsive">
 
+
             <table class="table table-hover align-middle">
+
 
                 <thead class="table-danger">
 
@@ -361,19 +521,25 @@
                         <th>Keterangan</th>
 
                         <th class="text-end">
+
                             Nominal
+
                         </th>
 
                     </tr>
 
                 </thead>
 
+
+
                 <tbody id="tbodyKeluar">
 
                     <tr>
 
-                        <td colspan="5"
-                            class="text-center text-muted">
+                        <td
+                            colspan="5"
+                            class="text-center text-muted"
+                        >
 
                             Memuat data...
 
@@ -383,19 +549,27 @@
 
                 </tbody>
 
+
+
                 <tfoot>
 
                     <tr class="table-danger fw-bold">
 
-                        <td colspan="4"
-                            class="text-end">
+
+                        <td
+                            colspan="4"
+                            class="text-end"
+                        >
 
                             TOTAL KAS KELUAR
 
                         </td>
 
-                        <td id="footerKeluar"
-                            class="text-end">
+
+                        <td
+                            id="footerKeluar"
+                            class="text-end"
+                        >
 
                             Rp0
 
@@ -405,6 +579,7 @@
 
                 </tfoot>
 
+
             </table>
 
         </div>
@@ -412,70 +587,103 @@
     </div>
 
 
-    <!-- ================= REKAP SALDO ================= -->
+
+    <!-- ================================================= -->
+    <!-- REKAP -->
+    <!-- ================================================= -->
 
     <div class="card card-donasi mt-4 mb-5">
+
 
         <div class="card-header bg-primary text-white">
 
             <h5 class="mb-0">
+
                 Rekapitulasi Kas DKM
+
             </h5>
 
         </div>
 
+
+
         <div class="card-body">
+
 
             <div class="table-responsive">
 
+
                 <table class="table align-middle">
+
 
                     <tbody>
 
+
                         <tr>
 
                             <td>
+
                                 Total Kas Masuk
+
                             </td>
 
-                            <td id="rekapMasuk"
-                                class="text-end text-success fw-bold">
+
+                            <td
+                                id="rekapMasuk"
+                                class="text-end text-success fw-bold"
+                            >
 
                                 Rp0
 
                             </td>
 
                         </tr>
+
+
 
                         <tr>
 
                             <td>
+
                                 Total Kas Keluar
+
                             </td>
 
-                            <td id="rekapKeluar"
-                                class="text-end text-danger fw-bold">
+
+                            <td
+                                id="rekapKeluar"
+                                class="text-end text-danger fw-bold"
+                            >
 
                                 Rp0
 
                             </td>
 
                         </tr>
+
+
 
                         <tr class="table-primary">
 
+
                             <td class="fw-bold">
+
                                 SALDO AKHIR
+
                             </td>
 
-                            <td id="rekapSaldo"
-                                class="text-end fw-bold fs-5">
+
+                            <td
+                                id="rekapSaldo"
+                                class="text-end fw-bold fs-5"
+                            >
 
                                 Rp0
 
                             </td>
 
                         </tr>
+
 
                     </tbody>
 
@@ -487,13 +695,20 @@
 
     </div>
 
+
 </div>
 
 
-<!-- ================= JAVASCRIPT ================= -->
+
+<!-- ================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ================================================= -->
 
 <script src="js/config.js"></script>
+
 <script src="js/app.js"></script>
 
+
 </body>
+
 </html>
