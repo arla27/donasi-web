@@ -1,86 +1,245 @@
+// ======================================================
+// DATA GLOBAL
+// ======================================================
+
 let dataKas = [];
 
 
-// ========================================
+// ======================================================
 // FORMAT RUPIAH
-// ========================================
+// ======================================================
 
 function formatRupiah(angka) {
 
     angka = Number(angka) || 0;
 
     return new Intl.NumberFormat("id-ID", {
+
         style: "currency",
+
         currency: "IDR",
+
         minimumFractionDigits: 0
+
     }).format(angka);
 
 }
 
 
-// ========================================
-// FORMAT TANGGAL
-// ========================================
+
+// ======================================================
+// FORMAT TANGGAL UNTUK TAMPILAN
+// ======================================================
 
 function formatTanggal(tanggal) {
 
     if (!tanggal) {
+
         return "-";
+
     }
 
-    // Jika Google mengirim Date object/string ISO
+
+    // ----------------------------------------------
+    // FORMAT DD/MM/YYYY
+    // ----------------------------------------------
+
     if (typeof tanggal === "string") {
 
-        // Format DD/MM/YYYY
         const match = tanggal.match(
             /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
         );
 
+
         if (match) {
 
-            return String(match[1]).padStart(2, "0") + "/" +
-                   String(match[2]).padStart(2, "0") + "/" +
-                   match[3];
+            return (
+
+                String(match[1]).padStart(2, "0")
+                + "/"
+                +
+                String(match[2]).padStart(2, "0")
+                + "/"
+                +
+                match[3]
+
+            );
 
         }
 
-        // Format YYYY-MM-DD
+
+        // ------------------------------------------
+        // FORMAT YYYY-MM-DD
+        // ------------------------------------------
+
         const matchISO = tanggal.match(
             /^(\d{4})-(\d{1,2})-(\d{1,2})/
         );
 
+
         if (matchISO) {
 
-            return String(matchISO[3]).padStart(2, "0") + "/" +
-                   String(matchISO[2]).padStart(2, "0") + "/" +
-                   matchISO[1];
+            return (
+
+                String(matchISO[3]).padStart(2, "0")
+                + "/"
+                +
+                String(matchISO[2]).padStart(2, "0")
+                + "/"
+                +
+                matchISO[1]
+
+            );
 
         }
 
     }
+
 
     return tanggal;
 
 }
 
 
-// ========================================
-// LOAD DATA
-// ========================================
+
+// ======================================================
+// PARSE TANGGAL
+// ======================================================
+
+function parseTanggal(tanggal) {
+
+    if (!tanggal) {
+
+        return null;
+
+    }
+
+
+    // ==================================================
+    // FORMAT DD/MM/YYYY
+    // ==================================================
+
+    if (typeof tanggal === "string") {
+
+        const match = tanggal.match(
+            /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+        );
+
+
+        if (match) {
+
+            const hari =
+                parseInt(match[1], 10);
+
+            const bulan =
+                parseInt(match[2], 10) - 1;
+
+            const tahun =
+                parseInt(match[3], 10);
+
+
+            return new Date(
+                tahun,
+                bulan,
+                hari
+            );
+
+        }
+
+
+        // ==================================================
+        // FORMAT YYYY-MM-DD
+        // ==================================================
+
+        const matchISO = tanggal.match(
+            /^(\d{4})-(\d{1,2})-(\d{1,2})/
+        );
+
+
+        if (matchISO) {
+
+            return new Date(
+
+                parseInt(matchISO[1], 10),
+
+                parseInt(matchISO[2], 10) - 1,
+
+                parseInt(matchISO[3], 10)
+
+            );
+
+        }
+
+    }
+
+
+    // ==================================================
+    // FORMAT DATE / ISO
+    // ==================================================
+
+    const d = new Date(tanggal);
+
+
+    if (!isNaN(d.getTime())) {
+
+        return new Date(
+
+            d.getFullYear(),
+
+            d.getMonth(),
+
+            d.getDate()
+
+        );
+
+    }
+
+
+    return null;
+
+}
+
+
+
+// ======================================================
+// LOAD DATA DARI GOOGLE APPS SCRIPT
+// ======================================================
 
 async function loadData() {
 
     try {
 
-        console.log("================================");
-        console.log("LOAD DATA KAS DKM");
-        console.log("URL:", SHEET_URL);
+        console.log(
+            "===================================="
+        );
+
+        console.log(
+            "LOAD DATA KAS DKM"
+        );
+
+        console.log(
+            "URL:",
+            SHEET_URL
+        );
 
 
-        const response = await fetch(SHEET_URL, {
-            method: "GET",
-            cache: "no-cache"
-        });
+        // ==================================================
+        // REQUEST
+        // ==================================================
+
+        const response = await fetch(
+
+            SHEET_URL,
+
+            {
+
+                method: "GET",
+
+                cache: "no-cache"
+
+            }
+
+        );
 
 
         console.log(
@@ -92,54 +251,80 @@ async function loadData() {
         if (!response.ok) {
 
             throw new Error(
-                "HTTP Error " + response.status
+
+                "HTTP Error " +
+                response.status
+
             );
 
         }
 
 
-        const result = await response.json();
+        // ==================================================
+        // JSON
+        // ==================================================
+
+        const result =
+            await response.json();
 
 
         console.log(
-            "RESPON GOOGLE APPS SCRIPT:",
+            "RESPON API:",
             result
         );
 
 
-        // ====================================
-        // CEK FORMAT RESPONSE
-        // ====================================
+        // ==================================================
+        // CEK ERROR DARI API
+        // ==================================================
 
-        if (result.success === false) {
+        if (
+            result &&
+            result.success === false
+        ) {
 
             throw new Error(
-                result.message || "API mengembalikan error"
+
+                result.message ||
+                "API mengembalikan error"
+
             );
 
         }
 
 
-        // ====================================
+        // ==================================================
         // AMBIL DATA
-        // ====================================
+        // ==================================================
 
-        if (Array.isArray(result)) {
+        if (
+            Array.isArray(result)
+        ) {
 
-            // Jika Apps Script langsung mengirim array
+            // API langsung mengembalikan array
+
             dataKas = result;
 
-        } else if (Array.isArray(result.data)) {
+        }
 
-            // Jika Apps Script mengirim:
-            // {success:true,data:[...]}
+        else if (
+            result &&
+            Array.isArray(result.data)
+        ) {
+
+            // API mengembalikan:
+            // {success:true,data:[]}
 
             dataKas = result.data;
 
-        } else {
+        }
+
+        else {
 
             throw new Error(
-                "Format data dari Apps Script tidak dikenali"
+
+                "Format data dari Google Apps Script tidak dikenali"
+
             );
 
         }
@@ -151,10 +336,17 @@ async function loadData() {
         );
 
 
-        tampilkanData();
+        // ==================================================
+        // TAMPILKAN SEMUA DATA
+        // ==================================================
+
+        tampilkanData(dataKas);
 
 
-    } catch (error) {
+    }
+
+    catch (error) {
+
 
         console.error(
             "ERROR LOAD DATA:",
@@ -162,43 +354,67 @@ async function loadData() {
         );
 
 
+        // ==================================================
+        // TABEL MASUK
+        // ==================================================
+
         document.getElementById(
             "tbodyMasuk"
         ).innerHTML = `
+
             <tr>
-                <td colspan="5"
-                    class="text-center text-danger">
+
+                <td
+                    colspan="5"
+                    class="text-center text-danger"
+                >
 
                     Gagal mengambil data kas
 
                     <br>
 
                     <small>
+
                         ${error.message}
+
                     </small>
 
                 </td>
+
             </tr>
+
         `;
 
+
+        // ==================================================
+        // TABEL KELUAR
+        // ==================================================
 
         document.getElementById(
             "tbodyKeluar"
         ).innerHTML = `
+
             <tr>
-                <td colspan="5"
-                    class="text-center text-danger">
+
+                <td
+                    colspan="5"
+                    class="text-center text-danger"
+                >
 
                     Gagal mengambil data kas
 
                     <br>
 
                     <small>
+
                         ${error.message}
+
                     </small>
 
                 </td>
+
             </tr>
+
         `;
 
     }
@@ -206,75 +422,125 @@ async function loadData() {
 }
 
 
-// ========================================
-// TAMPILKAN DATA
-// ========================================
 
-function tampilkanData() {
+// ======================================================
+// TAMPILKAN DATA
+// ======================================================
+
+function tampilkanData(dataUntukDitampilkan) {
+
+
+    // ==================================================
+    // PASTIKAN ARRAY
+    // ==================================================
+
+    if (!Array.isArray(dataUntukDitampilkan)) {
+
+        dataUntukDitampilkan = [];
+
+    }
+
+
+    // ==================================================
+    // TOTAL
+    // ==================================================
 
     let totalMasuk = 0;
+
     let totalKeluar = 0;
 
 
-    // ====================================
-    // FILTER MASUK
-    // ====================================
 
-    const masuk = dataKas.filter(item => {
+    // ==================================================
+    // FILTER KAS MASUK
+    // ==================================================
 
-        return String(item.jenis || "")
-            .trim()
-            .toUpperCase() === "MASUK";
+    const masuk =
+        dataUntukDitampilkan.filter(
 
-    });
+            item => {
 
+                return String(
+                    item.jenis || ""
+                )
+                .trim()
+                .toUpperCase()
+                === "MASUK";
 
-    // ====================================
-    // FILTER KELUAR
-    // ====================================
+            }
 
-    const keluar = dataKas.filter(item => {
-
-        return String(item.jenis || "")
-            .trim()
-            .toUpperCase() === "KELUAR";
-
-    });
+        );
 
 
-    // ====================================
-    // HITUNG TOTAL MASUK
-    // ====================================
 
-    masuk.forEach(item => {
+    // ==================================================
+    // FILTER KAS KELUAR
+    // ==================================================
 
-        totalMasuk += Number(item.nominal) || 0;
+    const keluar =
+        dataUntukDitampilkan.filter(
 
-    });
+            item => {
+
+                return String(
+                    item.jenis || ""
+                )
+                .trim()
+                .toUpperCase()
+                === "KELUAR";
+
+            }
+
+        );
 
 
-    // ====================================
-    // HITUNG TOTAL KELUAR
-    // ====================================
 
-    keluar.forEach(item => {
+    // ==================================================
+    // HITUNG KAS MASUK
+    // ==================================================
 
-        totalKeluar += Number(item.nominal) || 0;
+    masuk.forEach(
 
-    });
+        item => {
+
+            totalMasuk +=
+                Number(item.nominal) || 0;
+
+        }
+
+    );
 
 
-    // ====================================
+
+    // ==================================================
+    // HITUNG KAS KELUAR
+    // ==================================================
+
+    keluar.forEach(
+
+        item => {
+
+            totalKeluar +=
+                Number(item.nominal) || 0;
+
+        }
+
+    );
+
+
+
+    // ==================================================
     // SALDO
-    // ====================================
+    // ==================================================
 
     const saldo =
         totalMasuk - totalKeluar;
 
 
-    // ====================================
-    // SUMMARY
-    // ====================================
+
+    // ==================================================
+    // CARD KAS MASUK
+    // ==================================================
 
     document.getElementById(
         "totalMasuk"
@@ -282,11 +548,21 @@ function tampilkanData() {
         formatRupiah(totalMasuk);
 
 
+
+    // ==================================================
+    // CARD KAS KELUAR
+    // ==================================================
+
     document.getElementById(
         "totalKeluar"
     ).innerText =
         formatRupiah(totalKeluar);
 
+
+
+    // ==================================================
+    // CARD SALDO
+    // ==================================================
 
     document.getElementById(
         "saldo"
@@ -294,9 +570,10 @@ function tampilkanData() {
         formatRupiah(saldo);
 
 
-    // ====================================
-    // FOOTER
-    // ====================================
+
+    // ==================================================
+    // FOOTER MASUK
+    // ==================================================
 
     document.getElementById(
         "footerMasuk"
@@ -304,15 +581,21 @@ function tampilkanData() {
         formatRupiah(totalMasuk);
 
 
+
+    // ==================================================
+    // FOOTER KELUAR
+    // ==================================================
+
     document.getElementById(
         "footerKeluar"
     ).innerText =
         formatRupiah(totalKeluar);
 
 
-    // ====================================
-    // REKAP
-    // ====================================
+
+    // ==================================================
+    // REKAP MASUK
+    // ==================================================
 
     document.getElementById(
         "rekapMasuk"
@@ -320,11 +603,21 @@ function tampilkanData() {
         formatRupiah(totalMasuk);
 
 
+
+    // ==================================================
+    // REKAP KELUAR
+    // ==================================================
+
     document.getElementById(
         "rekapKeluar"
     ).innerText =
         formatRupiah(totalKeluar);
 
+
+
+    // ==================================================
+    // REKAP SALDO
+    // ==================================================
 
     document.getElementById(
         "rekapSaldo"
@@ -332,67 +625,106 @@ function tampilkanData() {
         formatRupiah(saldo);
 
 
-    // ====================================
+
+    // ==================================================
     // JUMLAH TRANSAKSI
-    // ====================================
+    // ==================================================
 
     document.getElementById(
         "jumlahTransaksi"
     ).innerText =
-        dataKas.length;
+        dataUntukDitampilkan.length;
 
 
-    // ====================================
+
+    // ==================================================
     // UPDATE TERAKHIR
-    // ====================================
+    // ==================================================
 
     document.getElementById(
         "lastUpdate"
     ).innerText =
-        new Date().toLocaleString("id-ID");
+        new Date().toLocaleString(
+            "id-ID"
+        );
 
 
-    // ====================================
+
+    // ==================================================
     // TABEL KAS MASUK
-    // ====================================
+    // ==================================================
 
     let htmlMasuk = "";
 
 
-    masuk.forEach((item, index) => {
+    masuk.forEach(
 
-        htmlMasuk += `
+        (item, index) => {
 
-            <tr>
 
-                <td>
-                    ${index + 1}
-                </td>
+            htmlMasuk += `
 
-                <td>
-                    ${formatTanggal(item.tanggal)}
-                </td>
+                <tr>
 
-                <td>
-                    ${item.kategori || "-"}
-                </td>
+                    <td>
 
-                <td>
-                    ${item.keterangan || "-"}
-                </td>
+                        ${index + 1}
 
-                <td class="text-end text-success fw-bold">
+                    </td>
 
-                    ${formatRupiah(item.nominal)}
 
-                </td>
+                    <td>
 
-            </tr>
+                        ${formatTanggal(
+                            item.tanggal
+                        )}
 
-        `;
+                    </td>
 
-    });
 
+                    <td>
+
+                        ${
+                            item.kategori ||
+                            "-"
+                        }
+
+                    </td>
+
+
+                    <td>
+
+                        ${
+                            item.keterangan ||
+                            "-"
+                        }
+
+                    </td>
+
+
+                    <td
+                        class="text-end text-success fw-bold"
+                    >
+
+                        ${formatRupiah(
+                            item.nominal
+                        )}
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+    );
+
+
+
+    // ==================================================
+    // TIDAK ADA KAS MASUK
+    // ==================================================
 
     if (htmlMasuk === "") {
 
@@ -400,10 +732,13 @@ function tampilkanData() {
 
             <tr>
 
-                <td colspan="5"
-                    class="text-center text-muted">
+                <td
+                    colspan="5"
+                    class="text-center text-muted"
+                >
 
-                    Belum ada kas masuk
+                    Tidak ada kas masuk
+                    pada periode ini
 
                 </td>
 
@@ -412,6 +747,7 @@ function tampilkanData() {
         `;
 
     }
+
 
 
     document.getElementById(
@@ -420,47 +756,82 @@ function tampilkanData() {
         htmlMasuk;
 
 
-    // ====================================
+
+    // ==================================================
     // TABEL KAS KELUAR
-    // ====================================
+    // ==================================================
 
     let htmlKeluar = "";
 
 
-    keluar.forEach((item, index) => {
+    keluar.forEach(
 
-        htmlKeluar += `
+        (item, index) => {
 
-            <tr>
 
-                <td>
-                    ${index + 1}
-                </td>
+            htmlKeluar += `
 
-                <td>
-                    ${formatTanggal(item.tanggal)}
-                </td>
+                <tr>
 
-                <td>
-                    ${item.kategori || "-"}
-                </td>
+                    <td>
 
-                <td>
-                    ${item.keterangan || "-"}
-                </td>
+                        ${index + 1}
 
-                <td class="text-end text-danger fw-bold">
+                    </td>
 
-                    ${formatRupiah(item.nominal)}
 
-                </td>
+                    <td>
 
-            </tr>
+                        ${formatTanggal(
+                            item.tanggal
+                        )}
 
-        `;
+                    </td>
 
-    });
 
+                    <td>
+
+                        ${
+                            item.kategori ||
+                            "-"
+                        }
+
+                    </td>
+
+
+                    <td>
+
+                        ${
+                            item.keterangan ||
+                            "-"
+                        }
+
+                    </td>
+
+
+                    <td
+                        class="text-end text-danger fw-bold"
+                    >
+
+                        ${formatRupiah(
+                            item.nominal
+                        )}
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+    );
+
+
+
+    // ==================================================
+    // TIDAK ADA KAS KELUAR
+    // ==================================================
 
     if (htmlKeluar === "") {
 
@@ -468,10 +839,13 @@ function tampilkanData() {
 
             <tr>
 
-                <td colspan="5"
-                    class="text-center text-muted">
+                <td
+                    colspan="5"
+                    class="text-center text-muted"
+                >
 
-                    Belum ada kas keluar
+                    Tidak ada kas keluar
+                    pada periode ini
 
                 </td>
 
@@ -480,6 +854,7 @@ function tampilkanData() {
         `;
 
     }
+
 
 
     document.getElementById(
@@ -490,19 +865,278 @@ function tampilkanData() {
 }
 
 
-// ========================================
-// LOAD PERTAMA
-// ========================================
+
+// ======================================================
+// FILTER PERIODE
+// ======================================================
+
+function filterPeriode() {
+
+
+    // ==================================================
+    // AMBIL INPUT
+    // ==================================================
+
+    const tanggalMulai =
+        document.getElementById(
+            "tanggalMulai"
+        ).value;
+
+
+    const tanggalAkhir =
+        document.getElementById(
+            "tanggalAkhir"
+        ).value;
+
+
+
+    // ==================================================
+    // VALIDASI TANGGAL
+    // ==================================================
+
+    if (
+        !tanggalMulai ||
+        !tanggalAkhir
+    ) {
+
+        alert(
+            "Silakan pilih tanggal mulai dan tanggal akhir."
+        );
+
+        return;
+
+    }
+
+
+
+    // ==================================================
+    // VALIDASI URUTAN
+    // ==================================================
+
+    if (
+        tanggalMulai >
+        tanggalAkhir
+    ) {
+
+        alert(
+            "Tanggal mulai tidak boleh lebih besar dari tanggal akhir."
+        );
+
+        return;
+
+    }
+
+
+
+    // ==================================================
+    // BUAT TANGGAL
+    // ==================================================
+
+    const mulai =
+        new Date(
+            tanggalMulai +
+            "T00:00:00"
+        );
+
+
+    const akhir =
+        new Date(
+            tanggalAkhir +
+            "T23:59:59"
+        );
+
+
+
+    // ==================================================
+    // FILTER
+    // ==================================================
+
+    const hasil =
+        dataKas.filter(
+
+            item => {
+
+
+                const tanggalData =
+                    parseTanggal(
+                        item.tanggal
+                    );
+
+
+                if (!tanggalData) {
+
+                    return false;
+
+                }
+
+
+                return (
+
+                    tanggalData >= mulai &&
+                    tanggalData <= akhir
+
+                );
+
+            }
+
+        );
+
+
+
+    // ==================================================
+    // TAMPILKAN
+    // ==================================================
+
+    tampilkanData(
+        hasil
+    );
+
+
+
+    // ==================================================
+    // FORMAT LABEL PERIODE
+    // ==================================================
+
+    const mulaiText =
+        new Date(
+            tanggalMulai +
+            "T00:00:00"
+        ).toLocaleDateString(
+            "id-ID",
+            {
+
+                day: "2-digit",
+
+                month: "2-digit",
+
+                year: "numeric"
+
+            }
+        );
+
+
+    const akhirText =
+        new Date(
+            tanggalAkhir +
+            "T00:00:00"
+        ).toLocaleDateString(
+            "id-ID",
+            {
+
+                day: "2-digit",
+
+                month: "2-digit",
+
+                year: "numeric"
+
+            }
+        );
+
+
+
+    document.getElementById(
+        "periode"
+    ).innerText =
+
+        mulaiText +
+        " s/d " +
+        akhirText;
+
+}
+
+
+
+// ======================================================
+// SEMUA DATA
+// ======================================================
+
+function tampilkanSemuaData() {
+
+
+    // ==================================================
+    // KOSONGKAN INPUT
+    // ==================================================
+
+    document.getElementById(
+        "tanggalMulai"
+    ).value = "";
+
+
+    document.getElementById(
+        "tanggalAkhir"
+    ).value = "";
+
+
+
+    // ==================================================
+    // LABEL
+    // ==================================================
+
+    document.getElementById(
+        "periode"
+    ).innerText =
+        "Semua Data";
+
+
+
+    // ==================================================
+    // TAMPILKAN SEMUA
+    // ==================================================
+
+    tampilkanData(
+        dataKas
+    );
+
+}
+
+
+
+// ======================================================
+// EVENT BUTTON
+// ======================================================
+
+document
+    .getElementById(
+        "btnTampilkan"
+    )
+    .addEventListener(
+        "click",
+        filterPeriode
+    );
+
+
+
+document
+    .getElementById(
+        "btnSemua"
+    )
+    .addEventListener(
+        "click",
+        tampilkanSemuaData
+    );
+
+
+
+// ======================================================
+// LOAD DATA PERTAMA
+// ======================================================
 
 loadData();
 
 
-// ========================================
+
+// ======================================================
 // AUTO REFRESH 30 DETIK
-// ========================================
+// ======================================================
 
-setInterval(() => {
+setInterval(
 
-    loadData();
+    function() {
 
-}, 30000);
+        loadData();
+
+    },
+
+    30000
+
+);
