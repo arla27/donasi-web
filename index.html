@@ -127,51 +127,120 @@
     </div>
 
 
-    <!-- ================= INFORMASI PERIODE ================= -->
+   <!-- ================= FILTER PERIODE ================= -->
 
-    <div class="card card-donasi mt-4">
+<div class="card card-donasi mt-4">
 
-        <div class="card-body">
+    <div class="card-body">
 
-            <div class="row text-center">
+        <div class="row g-3 align-items-end">
 
-                <div class="col-md-4">
+            <!-- TANGGAL MULAI -->
 
-                    <small class="text-muted">
-                        Periode Laporan
-                    </small>
+            <div class="col-md-4">
 
-                    <div id="periode"
-                         class="fw-bold">
-                        -
-                    </div>
+                <label for="tanggalMulai"
+                       class="form-label fw-bold">
+
+                    Dari Tanggal
+
+                </label>
+
+                <input type="date"
+                       id="tanggalMulai"
+                       class="form-control">
+
+            </div>
+
+
+            <!-- TANGGAL AKHIR -->
+
+            <div class="col-md-4">
+
+                <label for="tanggalAkhir"
+                       class="form-label fw-bold">
+
+                    Sampai Tanggal
+
+                </label>
+
+                <input type="date"
+                       id="tanggalAkhir"
+                       class="form-control">
+
+            </div>
+
+
+            <!-- BUTTON -->
+
+            <div class="col-md-4">
+
+                <div class="d-flex gap-2">
+
+                    <button type="button"
+                            id="btnTampilkan"
+                            class="btn btn-primary flex-fill">
+
+                        Tampilkan
+
+                    </button>
+
+                    <button type="button"
+                            id="btnSemua"
+                            class="btn btn-secondary flex-fill">
+
+                        Semua Data
+
+                    </button>
 
                 </div>
 
-                <div class="col-md-4">
+            </div>
 
-                    <small class="text-muted">
-                        Jumlah Transaksi
-                    </small>
+        </div>
 
-                    <div id="jumlahTransaksi"
-                         class="fw-bold">
-                        0
-                    </div>
 
+        <!-- INFO PERIODE -->
+
+        <div class="row text-center mt-4">
+
+            <div class="col-md-4">
+
+                <small class="text-muted">
+                    Periode Laporan
+                </small>
+
+                <div id="periode"
+                     class="fw-bold">
+                    Semua Data
                 </div>
 
-                <div class="col-md-4">
+            </div>
 
-                    <small class="text-muted">
-                        Update Terakhir
-                    </small>
 
-                    <div id="lastUpdate"
-                         class="fw-bold">
-                        -
-                    </div>
+            <div class="col-md-4">
 
+                <small class="text-muted">
+                    Jumlah Transaksi
+                </small>
+
+                <div id="jumlahTransaksi"
+                     class="fw-bold">
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <small class="text-muted">
+                    Update Terakhir
+                </small>
+
+                <div id="lastUpdate"
+                     class="fw-bold">
+                    -
                 </div>
 
             </div>
@@ -180,6 +249,7 @@
 
     </div>
 
+</div>
 
     <!-- ================= KAS MASUK ================= -->
 
