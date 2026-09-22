@@ -47,38 +47,59 @@ async function loadData() {
 
     try {
 
-        const response = await fetch(API_URL);
+        console.log("Mengambil data dari:", SHEET_URL);
+
+        const response = await fetch(SHEET_URL);
+
+        console.log("HTTP Status:", response.status);
 
         if (!response.ok) {
-            throw new Error("Gagal mengambil data");
+            throw new Error(
+                "HTTP Error: " + response.status
+            );
         }
 
-        dataKas = await response.json();
+        const result = await response.json();
+
+        console.log("RESPON API:", result);
+
+        if (!result.success) {
+            throw new Error(
+                result.message || "API gagal"
+            );
+        }
+
+        dataKas = result.data || [];
 
         tampilkanData();
 
     } catch (error) {
 
-        console.error(error);
+        console.error("ERROR:", error);
 
         document.getElementById("tbodyMasuk").innerHTML = `
             <tr>
-                <td colspan="5" class="text-center text-danger">
+                <td colspan="5"
+                    class="text-center text-danger">
                     Gagal mengambil data kas
+                    <br>
+                    <small>${error.message}</small>
                 </td>
             </tr>
         `;
 
         document.getElementById("tbodyKeluar").innerHTML = `
             <tr>
-                <td colspan="5" class="text-center text-danger">
+                <td colspan="5"
+                    class="text-center text-danger">
                     Gagal mengambil data kas
+                    <br>
+                    <small>${error.message}</small>
                 </td>
             </tr>
         `;
 
     }
-
 }
 
 
