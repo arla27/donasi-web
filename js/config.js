@@ -1,2 +1,2 @@
-const SHEET_URL="https://script.google.com/macros/s/AKfycby9imG7K-7gFkDpFW4gl4rdDKa2aPfA5nlhcEFaw-jRqkIdbzzgcJz9ZY0BHMJi9MYH/exec";
+const SHEET_URL="https://script.google.com/macros/s/AKfycbwVEUzW1_bVuVOjRqaxI3EZ5svc70wsK5ZneIDBxcT2EFFDaWfJsc6bnYdLnUWUbLg0/exec";
 const TARGET=35000000;
