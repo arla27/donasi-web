@@ -707,46 +707,68 @@
 <script src="js/config.js"></script>
 
 <script src="js/app.js"></script>
+
 <script>
-document.addEventListener("contextmenu", function(e) {
-    e.preventDefault();
-});
+(function () {
 
-document.addEventListener("keydown", function(e) {
-
-    // F12
-    if (e.key === "F12") {
+    // ==============================
+    // BLOK KLIK KANAN
+    // ==============================
+    document.addEventListener("contextmenu", function (e) {
         e.preventDefault();
-    }
+    });
 
-    // Ctrl + Shift + I
-    if (
-        e.ctrlKey &&
-        e.shiftKey &&
-        e.key.toLowerCase() === "i"
-    ) {
-        e.preventDefault();
-    }
+    // ==============================
+    // BLOK SHORTCUT DEVTOOLS
+    // ==============================
+    document.addEventListener("keydown", function (e) {
 
-    // Ctrl + Shift + J
-    if (
-        e.ctrlKey &&
-        e.shiftKey &&
-        e.key.toLowerCase() === "j"
-    ) {
-        e.preventDefault();
-    }
+        // F12
+        if (e.key === "F12") {
+            e.preventDefault();
+            return false;
+        }
 
-    // Ctrl + U
-    if (
-        e.ctrlKey &&
-        e.key.toLowerCase() === "u"
-    ) {
-        e.preventDefault();
-    }
+        // Ctrl + Shift + I
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i") {
+            e.preventDefault();
+            return false;
+        }
 
-});
-</script>
+        // Ctrl + Shift + J
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "j") {
+            e.preventDefault();
+            return false;
+        }
+
+        // Ctrl + Shift + C
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "c") {
+            e.preventDefault();
+            return false;
+        }
+
+        // Ctrl + U
+        if (e.ctrlKey && e.key.toLowerCase() === "u") {
+            e.preventDefault();
+            return false;
+        }
+
+        // Ctrl + S
+        if (e.ctrlKey && e.key.toLowerCase() === "s") {
+            e.preventDefault();
+            return false;
+        }
+
+        // Ctrl + P
+        if (e.ctrlKey && e.key.toLowerCase() === "p") {
+            e.preventDefault();
+            return false;
+        }
+
+    });
+
+})();
+</script>    
 
 </body>
 
