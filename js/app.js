@@ -824,20 +824,26 @@ function renderKasKeluar(data) {
    FILTER PERIODE
 ========================================================= */
 
+/* =========================================================
+   FILTER PERIODE
+========================================================= */
+
 function filterPeriode() {
 
+    const inputMulai = document.getElementById("tanggalMulai");
+    const inputAkhir = document.getElementById("tanggalAkhir");
 
-    const mulai =
-        document.getElementById(
-            "tanggalMulai"
-        ).value;
+    const mulai = inputMulai.value;
+    const akhir = inputAkhir.value;
+
+    console.log("Tanggal mulai :", mulai);
+    console.log("Tanggal akhir :", akhir);
+    console.log("Total data    :", dataKas.length);
 
 
-    const akhir =
-        document.getElementById(
-            "tanggalAkhir"
-        ).value;
-
+    // ============================================
+    // VALIDASI
+    // ============================================
 
     if (!mulai || !akhir) {
 
@@ -846,77 +852,247 @@ function filterPeriode() {
         );
 
         return;
-
     }
 
 
-    const tanggalMulai =
-        new Date(
-            mulai + "T00:00:00"
-        );
-
-
-    const tanggalAkhir =
-        new Date(
-            akhir + "23:59:59"
-        );
-
-
-    if (
-        tanggalMulai >
-        tanggalAkhir
-    ) {
+    if (mulai > akhir) {
 
         alert(
             "Tanggal mulai tidak boleh lebih besar dari tanggal akhir."
         );
 
         return;
+    }
+
+
+    // ============================================
+    // FILTER DATA
+    // ============================================
+
+    const hasil = dataKas.filter(function (item) {
+
+        const tanggalItem =
+            tanggalKeYYYYMMDD(item.tanggal);
+
+        console.log(
+            "Data:",
+            item.tanggal,
+            "=>",
+            tanggalItem
+        );
+
+
+        if (!tanggalItem) {
+            return false;
+        }
+
+
+        return (
+            tanggalItem >= mulai &&
+            tanggalItem <= akhir
+        );
+
+    });
+
+
+    console.log(
+        "Hasil filter:",
+        hasil
+    );
+
+
+    // ============================================
+    // TAMPILKAN PERIODE
+    // ============================================
+
+    setText(
+        "periode",
+        formatTanggalIndonesia(mulai) +
+        " s/d " +
+        formatTanggalIndonesia(akhir)
+    );
+
+
+    // ============================================
+    // TAMPILKAN HASIL
+    // ============================================
+
+    tampilkanData(hasil);
+
+}
+
+
+
+/* =========================================================
+   KONVERSI TANGGAL KE YYYY-MM-DD
+========================================================= */
+
+function tanggalKeYYYYMMDD(value) {
+
+    if (!value) {
+        return "";
+    }
+
+
+    // ---------------------------------------------
+    // Kalau sudah YYYY-MM-DD
+    // ---------------------------------------------
+
+    const str =
+        String(value).trim();
+
+
+    if (
+        /^\d{4}-\d{2}-\d{2}$/.test(str)
+    ) {
+
+        return str;
 
     }
 
 
-    const hasil =
-        dataKas.filter(
-            function (item) {
+    // ---------------------------------------------
+    // DD/MM/YYYY
+    // ---------------------------------------------
 
-                const tanggal =
-                    parseTanggal(
-                        item.tanggal
-                    );
-
-
-                if (!tanggal) {
-                    return false;
-                }
-
-
-                tanggal.setHours(
-                    0,
-                    0,
-                    0,
-                    0
-                );
-
-
-                return (
-                    tanggal >= tanggalMulai &&
-                    tanggal <= tanggalAkhir
-                );
-
-            }
+    let match =
+        str.match(
+            /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
         );
 
 
-    setText(
-        "periode",
-        formatTanggal(mulai) +
-        " s/d " +
-        formatTanggal(akhir)
-    );
+    if (match) {
+
+        const day =
+            String(match[1])
+                .padStart(2, "0");
+
+        const month =
+            String(match[2])
+                .padStart(2, "0");
+
+        const year =
+            match[3];
 
 
-    tampilkanData(hasil);
+        return (
+            year +
+            "-" +
+            month +
+            "-" +
+            day
+        );
+
+    }
+
+
+    // ---------------------------------------------
+    // DD-MM-YYYY
+    // ---------------------------------------------
+
+    match =
+        str.match(
+            /^(\d{1,2})-(\d{1,2})-(\d{4})$/
+        );
+
+
+    if (match) {
+
+        const day =
+            String(match[1])
+                .padStart(2, "0");
+
+        const month =
+            String(match[2])
+                .padStart(2, "0");
+
+        const year =
+            match[3];
+
+
+        return (
+            year +
+            "-" +
+            month +
+            "-" +
+            day
+        );
+
+    }
+
+
+    // ---------------------------------------------
+    // DATE OBJECT / ISO
+    // ---------------------------------------------
+
+    const d =
+        new Date(value);
+
+
+    if (
+        !isNaN(d.getTime())
+    ) {
+
+        const year =
+            d.getFullYear();
+
+        const month =
+            String(
+                d.getMonth() + 1
+            ).padStart(2, "0");
+
+        const day =
+            String(
+                d.getDate()
+            ).padStart(2, "0");
+
+
+        return (
+            year +
+            "-" +
+            month +
+            "-" +
+            day
+        );
+
+    }
+
+
+    return "";
+
+}
+
+
+
+/* =========================================================
+   FORMAT TANGGAL INDONESIA
+========================================================= */
+
+function formatTanggalIndonesia(value) {
+
+    if (!value) {
+        return "-";
+    }
+
+
+    const parts =
+        String(value).split("-");
+
+
+    if (parts.length === 3) {
+
+        return (
+            parts[2] +
+            "/" +
+            parts[1] +
+            "/" +
+            parts[0]
+        );
+
+    }
+
+
+    return value;
 
 }
 
