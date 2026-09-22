@@ -1,2 +1,2 @@
-const SHEET_URL="https://opensheet.elk.sh/1e7wGCoZlY9_7e5pf98_7socXJun-XotJk_FcLjarAtI/Sheet1";
+const SHEET_URL="https://script.google.com/macros/s/AKfycbzoACFN0hlYAf6hQGFvQBqhTGfSXIY8poWuaDMR02tSrXcVm66G1OX0xiYEsfuwLtD6/exec";
 const TARGET=35000000;
