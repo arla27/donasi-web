@@ -103,6 +103,12 @@ async function loadData() {
 }
 
 
+loadData();
+
+setInterval(function() {
+    loadData();
+}, 30000);
+
 // ========================================
 // TAMPILKAN DATA
 // ========================================
