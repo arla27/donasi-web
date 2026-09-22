@@ -7,6 +7,8 @@ let dataKas = [];
 
 function formatRupiah(angka) {
 
+    angka = Number(angka) || 0;
+
     return new Intl.NumberFormat("id-ID", {
         style: "currency",
         currency: "IDR",
@@ -22,19 +24,42 @@ function formatRupiah(angka) {
 
 function formatTanggal(tanggal) {
 
-    if (!tanggal) return "-";
-
-    const d = new Date(tanggal);
-
-    if (isNaN(d)) {
-        return tanggal;
+    if (!tanggal) {
+        return "-";
     }
 
-    return d.toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric"
-    });
+    // Jika Google mengirim Date object/string ISO
+    if (typeof tanggal === "string") {
+
+        // Format DD/MM/YYYY
+        const match = tanggal.match(
+            /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+        );
+
+        if (match) {
+
+            return String(match[1]).padStart(2, "0") + "/" +
+                   String(match[2]).padStart(2, "0") + "/" +
+                   match[3];
+
+        }
+
+        // Format YYYY-MM-DD
+        const matchISO = tanggal.match(
+            /^(\d{4})-(\d{1,2})-(\d{1,2})/
+        );
+
+        if (matchISO) {
+
+            return String(matchISO[3]).padStart(2, "0") + "/" +
+                   String(matchISO[2]).padStart(2, "0") + "/" +
+                   matchISO[1];
+
+        }
+
+    }
+
+    return tanggal;
 
 }
 
@@ -47,67 +72,139 @@ async function loadData() {
 
     try {
 
-        console.log("Mengambil data dari:", SHEET_URL);
+        console.log("================================");
+        console.log("LOAD DATA KAS DKM");
+        console.log("URL:", SHEET_URL);
 
-        const response = await fetch(SHEET_URL);
 
-        console.log("HTTP Status:", response.status);
+        const response = await fetch(SHEET_URL, {
+            method: "GET",
+            cache: "no-cache"
+        });
+
+
+        console.log(
+            "HTTP STATUS:",
+            response.status
+        );
+
 
         if (!response.ok) {
+
             throw new Error(
-                "HTTP Error: " + response.status
+                "HTTP Error " + response.status
             );
+
         }
+
 
         const result = await response.json();
 
-        console.log("RESPON API:", result);
 
-        if (!result.success) {
+        console.log(
+            "RESPON GOOGLE APPS SCRIPT:",
+            result
+        );
+
+
+        // ====================================
+        // CEK FORMAT RESPONSE
+        // ====================================
+
+        if (result.success === false) {
+
             throw new Error(
-                result.message || "API gagal"
+                result.message || "API mengembalikan error"
             );
+
         }
 
-        dataKas = result.data || [];
+
+        // ====================================
+        // AMBIL DATA
+        // ====================================
+
+        if (Array.isArray(result)) {
+
+            // Jika Apps Script langsung mengirim array
+            dataKas = result;
+
+        } else if (Array.isArray(result.data)) {
+
+            // Jika Apps Script mengirim:
+            // {success:true,data:[...]}
+
+            dataKas = result.data;
+
+        } else {
+
+            throw new Error(
+                "Format data dari Apps Script tidak dikenali"
+            );
+
+        }
+
+
+        console.log(
+            "JUMLAH DATA:",
+            dataKas.length
+        );
+
 
         tampilkanData();
 
+
     } catch (error) {
 
-        console.error("ERROR:", error);
+        console.error(
+            "ERROR LOAD DATA:",
+            error
+        );
 
-        document.getElementById("tbodyMasuk").innerHTML = `
+
+        document.getElementById(
+            "tbodyMasuk"
+        ).innerHTML = `
             <tr>
                 <td colspan="5"
                     class="text-center text-danger">
+
                     Gagal mengambil data kas
+
                     <br>
-                    <small>${error.message}</small>
+
+                    <small>
+                        ${error.message}
+                    </small>
+
                 </td>
             </tr>
         `;
 
-        document.getElementById("tbodyKeluar").innerHTML = `
+
+        document.getElementById(
+            "tbodyKeluar"
+        ).innerHTML = `
             <tr>
                 <td colspan="5"
                     class="text-center text-danger">
+
                     Gagal mengambil data kas
+
                     <br>
-                    <small>${error.message}</small>
+
+                    <small>
+                        ${error.message}
+                    </small>
+
                 </td>
             </tr>
         `;
 
     }
+
 }
 
-
-loadData();
-
-setInterval(function() {
-    loadData();
-}, 30000);
 
 // ========================================
 // TAMPILKAN DATA
@@ -118,42 +215,82 @@ function tampilkanData() {
     let totalMasuk = 0;
     let totalKeluar = 0;
 
-    const masuk = dataKas.filter(
-        item => String(item.jenis).toUpperCase() === "MASUK"
-    );
 
-    const keluar = dataKas.filter(
-        item => String(item.jenis).toUpperCase() === "KELUAR"
-    );
+    // ====================================
+    // FILTER MASUK
+    // ====================================
+
+    const masuk = dataKas.filter(item => {
+
+        return String(item.jenis || "")
+            .trim()
+            .toUpperCase() === "MASUK";
+
+    });
 
 
     // ====================================
-    // HITUNG TOTAL
+    // FILTER KELUAR
+    // ====================================
+
+    const keluar = dataKas.filter(item => {
+
+        return String(item.jenis || "")
+            .trim()
+            .toUpperCase() === "KELUAR";
+
+    });
+
+
+    // ====================================
+    // HITUNG TOTAL MASUK
     // ====================================
 
     masuk.forEach(item => {
+
         totalMasuk += Number(item.nominal) || 0;
+
     });
+
+
+    // ====================================
+    // HITUNG TOTAL KELUAR
+    // ====================================
 
     keluar.forEach(item => {
+
         totalKeluar += Number(item.nominal) || 0;
+
     });
 
 
-    const saldo = totalMasuk - totalKeluar;
+    // ====================================
+    // SALDO
+    // ====================================
+
+    const saldo =
+        totalMasuk - totalKeluar;
 
 
     // ====================================
-    // TAMPILKAN RINGKASAN
+    // SUMMARY
     // ====================================
 
-    document.getElementById("totalMasuk").innerText =
+    document.getElementById(
+        "totalMasuk"
+    ).innerText =
         formatRupiah(totalMasuk);
 
-    document.getElementById("totalKeluar").innerText =
+
+    document.getElementById(
+        "totalKeluar"
+    ).innerText =
         formatRupiah(totalKeluar);
 
-    document.getElementById("saldo").innerText =
+
+    document.getElementById(
+        "saldo"
+    ).innerText =
         formatRupiah(saldo);
 
 
@@ -161,10 +298,15 @@ function tampilkanData() {
     // FOOTER
     // ====================================
 
-    document.getElementById("footerMasuk").innerText =
+    document.getElementById(
+        "footerMasuk"
+    ).innerText =
         formatRupiah(totalMasuk);
 
-    document.getElementById("footerKeluar").innerText =
+
+    document.getElementById(
+        "footerKeluar"
+    ).innerText =
         formatRupiah(totalKeluar);
 
 
@@ -172,13 +314,21 @@ function tampilkanData() {
     // REKAP
     // ====================================
 
-    document.getElementById("rekapMasuk").innerText =
+    document.getElementById(
+        "rekapMasuk"
+    ).innerText =
         formatRupiah(totalMasuk);
 
-    document.getElementById("rekapKeluar").innerText =
+
+    document.getElementById(
+        "rekapKeluar"
+    ).innerText =
         formatRupiah(totalKeluar);
 
-    document.getElementById("rekapSaldo").innerText =
+
+    document.getElementById(
+        "rekapSaldo"
+    ).innerText =
         formatRupiah(saldo);
 
 
@@ -186,32 +336,38 @@ function tampilkanData() {
     // JUMLAH TRANSAKSI
     // ====================================
 
-    document.getElementById("jumlahTransaksi").innerText =
+    document.getElementById(
+        "jumlahTransaksi"
+    ).innerText =
         dataKas.length;
 
 
     // ====================================
-    // TANGGAL UPDATE
+    // UPDATE TERAKHIR
     // ====================================
 
-    const sekarang = new Date();
-
-    document.getElementById("lastUpdate").innerText =
-        sekarang.toLocaleString("id-ID");
+    document.getElementById(
+        "lastUpdate"
+    ).innerText =
+        new Date().toLocaleString("id-ID");
 
 
     // ====================================
-    // TABEL MASUK
+    // TABEL KAS MASUK
     // ====================================
 
     let htmlMasuk = "";
 
+
     masuk.forEach((item, index) => {
 
         htmlMasuk += `
+
             <tr>
 
-                <td>${index + 1}</td>
+                <td>
+                    ${index + 1}
+                </td>
 
                 <td>
                     ${formatTanggal(item.tanggal)}
@@ -226,10 +382,13 @@ function tampilkanData() {
                 </td>
 
                 <td class="text-end text-success fw-bold">
+
                     ${formatRupiah(item.nominal)}
+
                 </td>
 
             </tr>
+
         `;
 
     });
@@ -238,32 +397,45 @@ function tampilkanData() {
     if (htmlMasuk === "") {
 
         htmlMasuk = `
+
             <tr>
+
                 <td colspan="5"
                     class="text-center text-muted">
+
                     Belum ada kas masuk
+
                 </td>
+
             </tr>
+
         `;
 
     }
 
-    document.getElementById("tbodyMasuk").innerHTML =
+
+    document.getElementById(
+        "tbodyMasuk"
+    ).innerHTML =
         htmlMasuk;
 
 
     // ====================================
-    // TABEL KELUAR
+    // TABEL KAS KELUAR
     // ====================================
 
     let htmlKeluar = "";
 
+
     keluar.forEach((item, index) => {
 
         htmlKeluar += `
+
             <tr>
 
-                <td>${index + 1}</td>
+                <td>
+                    ${index + 1}
+                </td>
 
                 <td>
                     ${formatTanggal(item.tanggal)}
@@ -278,10 +450,13 @@ function tampilkanData() {
                 </td>
 
                 <td class="text-end text-danger fw-bold">
+
                     ${formatRupiah(item.nominal)}
+
                 </td>
 
             </tr>
+
         `;
 
     });
@@ -290,17 +465,26 @@ function tampilkanData() {
     if (htmlKeluar === "") {
 
         htmlKeluar = `
+
             <tr>
+
                 <td colspan="5"
                     class="text-center text-muted">
+
                     Belum ada kas keluar
+
                 </td>
+
             </tr>
+
         `;
 
     }
 
-    document.getElementById("tbodyKeluar").innerHTML =
+
+    document.getElementById(
+        "tbodyKeluar"
+    ).innerHTML =
         htmlKeluar;
 
 }
@@ -317,7 +501,7 @@ loadData();
 // AUTO REFRESH 30 DETIK
 // ========================================
 
-setInterval(function() {
+setInterval(() => {
 
     loadData();
 
