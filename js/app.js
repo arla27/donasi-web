@@ -1,14 +1,43 @@
 "use strict";
 
-
 /* =========================================================
-   DATA GLOBAL
+   KONFIGURASI
 ========================================================= */
 
 let dataKas = [];
 
 let sedangMemuat = false;
 
+let sudahLoadPertama = false;
+
+
+/* =========================================================
+   FORMATTER
+   Dibuat sekali saja supaya tidak membuat formatter
+   berulang-ulang saat tabel dirender.
+========================================================= */
+
+const rupiahFormatter =
+    new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        minimumFractionDigits: 0
+    });
+
+
+const tanggalFormatter =
+    new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+    });
+
+
+const waktuFormatter =
+    new Intl.DateTimeFormat("id-ID", {
+        dateStyle: "short",
+        timeStyle: "medium"
+    });
 
 
 /* =========================================================
@@ -17,66 +46,86 @@ let sedangMemuat = false;
 
 function formatRupiah(nilai) {
 
-    nilai = Number(nilai) || 0;
-
-    return new Intl.NumberFormat(
-        "id-ID",
-        {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0
-        }
-    ).format(nilai);
+    return rupiahFormatter.format(
+        Number(nilai) || 0
+    );
 
 }
 
 
-
 /* =========================================================
-   FORMAT TANGGAL
+   SET TEXT
 ========================================================= */
 
-function formatTanggal(tanggal) {
+function setText(id, value) {
 
-    if (!tanggal) {
-        return "-";
+    const el =
+        document.getElementById(id);
+
+    if (el) {
+        el.textContent = value;
     }
-
-
-    const d = parseTanggal(tanggal);
-
-
-    if (!d || isNaN(d.getTime())) {
-        return tanggal;
-    }
-
-
-    return new Intl.DateTimeFormat(
-        "id-ID",
-        {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric"
-        }
-    ).format(d);
 
 }
 
 
-
 /* =========================================================
-   PARSE TANGGAL
+   ESCAPE HTML
 ========================================================= */
 
-function parseTanggal(value) {
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================================
+   KONVERSI TANGGAL KE YYYY-MM-DD
+
+   Format yang didukung:
+
+   DD/MM/YYYY
+   DD-MM-YYYY
+   YYYY-MM-DD
+   Date
+   ISO Date
+========================================================= */
+
+function tanggalKeYYYYMMDD(value) {
 
     if (!value) {
-        return null;
+        return "";
     }
 
 
+    /* -----------------------------------------
+       DATE OBJECT
+    ----------------------------------------- */
+
     if (value instanceof Date) {
-        return value;
+
+        if (isNaN(value.getTime())) {
+            return "";
+        }
+
+        return (
+            value.getFullYear() +
+            "-" +
+            String(
+                value.getMonth() + 1
+            ).padStart(2, "0") +
+            "-" +
+            String(
+                value.getDate()
+            ).padStart(2, "0")
+        );
+
     }
 
 
@@ -84,7 +133,22 @@ function parseTanggal(value) {
         String(value).trim();
 
 
-    /* DD/MM/YYYY */
+    /* -----------------------------------------
+       YYYY-MM-DD
+    ----------------------------------------- */
+
+    if (
+        /^\d{4}-\d{2}-\d{2}$/.test(str)
+    ) {
+
+        return str;
+
+    }
+
+
+    /* -----------------------------------------
+       DD/MM/YYYY
+    ----------------------------------------- */
 
     let match =
         str.match(
@@ -94,92 +158,142 @@ function parseTanggal(value) {
 
     if (match) {
 
-        return new Date(
-            Number(match[3]),
-            Number(match[2]) - 1,
-            Number(match[1])
+        return (
+            match[3] +
+            "-" +
+            String(match[2]).padStart(2, "0") +
+            "-" +
+            String(match[1]).padStart(2, "0")
         );
 
     }
 
 
-    /* YYYY-MM-DD */
+    /* -----------------------------------------
+       DD-MM-YYYY
+    ----------------------------------------- */
 
     match =
         str.match(
-            /^(\d{4})-(\d{1,2})-(\d{1,2})$/
+            /^(\d{1,2})-(\d{1,2})-(\d{4})$/
         );
 
 
     if (match) {
 
-        return new Date(
-            Number(match[1]),
-            Number(match[2]) - 1,
-            Number(match[3])
+        return (
+            match[3] +
+            "-" +
+            String(match[2]).padStart(2, "0") +
+            "-" +
+            String(match[1]).padStart(2, "0")
         );
 
     }
 
 
-    /* ISO DATE */
+    /* -----------------------------------------
+       ISO / DATE STRING
+    ----------------------------------------- */
 
-    const parsed =
+    const d =
         new Date(str);
 
 
-    if (!isNaN(parsed.getTime())) {
+    if (!isNaN(d.getTime())) {
 
-        return parsed;
+        return (
+            d.getFullYear() +
+            "-" +
+            String(
+                d.getMonth() + 1
+            ).padStart(2, "0") +
+            "-" +
+            String(
+                d.getDate()
+            ).padStart(2, "0")
+        );
 
     }
 
 
-    return null;
+    return "";
 
 }
 
 
-
 /* =========================================================
-   FORMAT UNTUK INPUT DATE
+   FORMAT TANGGAL TAMPILAN
 ========================================================= */
 
-function formatDateInput(value) {
+function formatTanggal(tanggal) {
 
-    const d =
-        parseTanggal(value);
+    const normal =
+        tanggalKeYYYYMMDD(tanggal);
 
 
-    if (!d || isNaN(d.getTime())) {
+    if (!normal) {
+        return "-";
+    }
 
-        return "";
+
+    const parts =
+        normal.split("-");
+
+
+    if (parts.length === 3) {
+
+        return (
+            parts[2] +
+            "/" +
+            parts[1] +
+            "/" +
+            parts[0]
+        );
 
     }
 
 
-    const y =
-        d.getFullYear();
-
-
-    const m =
-        String(d.getMonth() + 1)
-        .padStart(2, "0");
-
-
-    const day =
-        String(d.getDate())
-        .padStart(2, "0");
-
-
-    return `${y}-${m}-${day}`;
+    return normal;
 
 }
 
 
+/* =========================================================
+   FORMAT TANGGAL INPUT
+========================================================= */
+
+function formatTanggalIndonesia(value) {
+
+    if (!value) {
+        return "-";
+    }
+
+
+    const parts =
+        String(value).split("-");
+
+
+    if (parts.length === 3) {
+
+        return (
+            parts[2] +
+            "/" +
+            parts[1] +
+            "/" +
+            parts[0]
+        );
+
+    }
+
+
+    return value;
+
+}
+
 
 /* =========================================================
-   LOADING
+   LOADING AWAL SAJA
 ========================================================= */
 
 function tampilLoading(status) {
@@ -208,13 +322,16 @@ function tampilLoading(status) {
 }
 
 
-
 /* =========================================================
    LOAD DATA
+
+   Penting:
+   - Loading hanya saat pertama kali.
+   - Refresh berikutnya berjalan di background.
+   - Tidak membuat halaman blank/loading setiap 30 detik.
 ========================================================= */
 
 async function loadData() {
-
 
     if (sedangMemuat) {
         return;
@@ -224,19 +341,49 @@ async function loadData() {
     sedangMemuat = true;
 
 
+    /* -----------------------------------------
+       Loading hanya load pertama
+    ----------------------------------------- */
+
+    if (!sudahLoadPertama) {
+        tampilLoading(true);
+    }
+
+
     try {
 
-        tampilLoading(true);
+        /*
+         * Jangan gunakan cache: "no-store"
+         * karena kita ingin request berikutnya
+         * tetap dapat memanfaatkan koneksi/cache
+         * browser bila memungkinkan.
+         *
+         * Timestamp tetap digunakan agar Apps Script
+         * tidak menyajikan response lama.
+         */
+
+        const separator =
+            SHEET_URL.includes("?")
+                ? "&"
+                : "?";
+
+
+        const url =
+            SHEET_URL +
+            separator +
+            "v=" +
+            Date.now();
 
 
         const response =
             await fetch(
-                SHEET_URL +
-                "?_=" +
-                Date.now(),
+                url,
                 {
                     method: "GET",
-                    cache: "no-store"
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
                 }
             );
 
@@ -255,26 +402,29 @@ async function loadData() {
             await response.json();
 
 
-        /* =====================================
-           VALIDASI RESPONSE
-        ===================================== */
+        /* -----------------------------------------
+           VALIDASI
+        ----------------------------------------- */
 
-        let data;
+        let data = [];
 
 
         if (Array.isArray(result)) {
 
             data = result;
 
-        } else if (
+        }
+        else if (
             result &&
             result.success === true &&
             Array.isArray(result.data)
         ) {
 
-            data = result.data;
+            data =
+                result.data;
 
-        } else {
+        }
+        else {
 
             throw new Error(
                 result.message ||
@@ -284,13 +434,22 @@ async function loadData() {
         }
 
 
-        /* =====================================
+        /* -----------------------------------------
            NORMALISASI DATA
-        ===================================== */
+
+           Sekalian simpan tanggal dalam format
+           YYYY-MM-DD supaya filter jauh lebih cepat.
+        ----------------------------------------- */
 
         dataKas =
             data.map(
                 function (item, index) {
+
+                    const tanggal =
+                        tanggalKeYYYYMMDD(
+                            item.tanggal
+                        );
+
 
                     return {
 
@@ -302,6 +461,9 @@ async function loadData() {
                             item.tanggal ??
                             "",
 
+                        tanggalKey:
+                            tanggal,
+
                         jenis:
                             String(
                                 item.jenis ??
@@ -311,12 +473,16 @@ async function loadData() {
                             .toUpperCase(),
 
                         kategori:
-                            item.kategori ??
-                            "",
+                            String(
+                                item.kategori ??
+                                ""
+                            ),
 
                         keterangan:
-                            item.keterangan ??
-                            "",
+                            String(
+                                item.keterangan ??
+                                ""
+                            ),
 
                         nominal:
                             Number(
@@ -324,8 +490,10 @@ async function loadData() {
                             ) || 0,
 
                         petugas:
-                            item.petugas ??
-                            ""
+                            String(
+                                item.petugas ??
+                                ""
+                            )
 
                     };
 
@@ -333,14 +501,20 @@ async function loadData() {
             );
 
 
-        /* =====================================
-           TAMPILKAN
-        ===================================== */
+        /* -----------------------------------------
+           TAMPILKAN DATA
+        ----------------------------------------- */
 
-        tampilkanData(dataKas);
+        tampilkanData(
+            dataKas
+        );
 
 
-    } catch (error) {
+        sudahLoadPertama = true;
+
+
+    }
+    catch (error) {
 
         console.error(
             "ERROR LOAD DATA:",
@@ -348,22 +522,35 @@ async function loadData() {
         );
 
 
-        tampilkanError(
-            error.message ||
-            "Gagal mengambil data"
-        );
+        /*
+         * Kalau refresh background gagal,
+         * jangan hapus data lama.
+         *
+         * Ini penting agar website tidak tiba-tiba
+         * menjadi kosong hanya karena API timeout.
+         */
 
+        if (!sudahLoadPertama) {
 
-    } finally {
+            tampilkanError(
+                error.message ||
+                "Gagal mengambil data"
+            );
+
+        }
+
+    }
+    finally {
 
         sedangMemuat = false;
 
-        tampilLoading(false);
+        if (!sudahLoadPertama) {
+            tampilLoading(false);
+        }
 
     }
 
 }
-
 
 
 /* =========================================================
@@ -376,6 +563,7 @@ function tampilkanError(pesan) {
         document.getElementById(
             "tbodyMasuk"
         );
+
 
     const keluar =
         document.getElementById(
@@ -435,39 +623,6 @@ function tampilkanError(pesan) {
 }
 
 
-
-/* =========================================================
-   ESCAPE HTML
-========================================================= */
-
-function escapeHtml(value) {
-
-    return String(value ?? "")
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-
 /* =========================================================
    TAMPILKAN DATA
 ========================================================= */
@@ -476,53 +631,52 @@ function tampilkanData(
     dataUntukDitampilkan
 ) {
 
+    const dataMasuk = [];
 
-    const dataMasuk =
-        dataUntukDitampilkan.filter(
-            function (item) {
+    const dataKeluar = [];
 
-                return item.jenis === "MASUK";
+    let totalMasuk = 0;
 
-            }
-        );
+    let totalKeluar = 0;
 
 
-    const dataKeluar =
-        dataUntukDitampilkan.filter(
-            function (item) {
+    /* -----------------------------------------
+       SATU LOOP SAJA
 
-                return item.jenis === "KELUAR";
+       Sebelumnya filter + reduce dilakukan
+       beberapa kali.
+    ----------------------------------------- */
 
-            }
-        );
+    for (
+        let i = 0;
+        i < dataUntukDitampilkan.length;
+        i++
+    ) {
 
-
-    /* =====================================
-       TOTAL
-    ===================================== */
-
-    const totalMasuk =
-        dataMasuk.reduce(
-            function (total, item) {
-
-                return total +
-                    Number(item.nominal || 0);
-
-            },
-            0
-        );
+        const item =
+            dataUntukDitampilkan[i];
 
 
-    const totalKeluar =
-        dataKeluar.reduce(
-            function (total, item) {
+        if (item.jenis === "MASUK") {
 
-                return total +
-                    Number(item.nominal || 0);
+            dataMasuk.push(item);
 
-            },
-            0
-        );
+            totalMasuk +=
+                Number(item.nominal) || 0;
+
+        }
+        else if (
+            item.jenis === "KELUAR"
+        ) {
+
+            dataKeluar.push(item);
+
+            totalKeluar +=
+                Number(item.nominal) || 0;
+
+        }
+
+    }
 
 
     const saldo =
@@ -530,10 +684,9 @@ function tampilkanData(
         totalKeluar;
 
 
-
-    /* =====================================
+    /* -----------------------------------------
        SUMMARY
-    ===================================== */
+    ----------------------------------------- */
 
     setText(
         "totalMasuk",
@@ -591,20 +744,15 @@ function tampilkanData(
 
     setText(
         "lastUpdate",
-        new Intl.DateTimeFormat(
-            "id-ID",
-            {
-                dateStyle: "short",
-                timeStyle: "medium"
-            }
-        ).format(new Date())
+        waktuFormatter.format(
+            new Date()
+        )
     );
 
 
-
-    /* =====================================
+    /* -----------------------------------------
        TABLE
-    ===================================== */
+    ----------------------------------------- */
 
     renderKasMasuk(
         dataMasuk
@@ -616,28 +764,6 @@ function tampilkanData(
     );
 
 }
-
-
-
-/* =========================================================
-   SET TEXT
-========================================================= */
-
-function setText(id, value) {
-
-    const el =
-        document.getElementById(id);
-
-
-    if (el) {
-
-        el.textContent =
-            value;
-
-    }
-
-}
-
 
 
 /* =========================================================
@@ -657,7 +783,7 @@ function renderKasMasuk(data) {
     }
 
 
-    if (!data.length) {
+    if (data.length === 0) {
 
         tbody.innerHTML = `
 
@@ -681,53 +807,66 @@ function renderKasMasuk(data) {
     }
 
 
+    let html = "";
+
+
+    for (
+        let i = 0;
+        i < data.length;
+        i++
+    ) {
+
+        const item =
+            data[i];
+
+
+        html += `
+
+            <tr>
+
+                <td>
+                    ${i + 1}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        formatTanggal(
+                            item.tanggal
+                        )
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.kategori
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.keterangan
+                    )}
+                </td>
+
+                <td
+                    class="text-end fw-bold text-success"
+                >
+                    ${formatRupiah(
+                        item.nominal
+                    )}
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+
     tbody.innerHTML =
-        data.map(
-            function (item, index) {
-
-                return `
-
-                    <tr>
-
-                        <td>
-                            ${index + 1}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                formatTanggal(
-                                    item.tanggal
-                                )
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.kategori
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.keterangan
-                            )}
-                        </td>
-
-                        <td class="text-end fw-bold text-success">
-                            ${formatRupiah(
-                                item.nominal
-                            )}
-                        </td>
-
-                    </tr>
-
-                `;
-
-            }
-        ).join("");
+        html;
 
 }
-
 
 
 /* =========================================================
@@ -747,7 +886,7 @@ function renderKasKeluar(data) {
     }
 
 
-    if (!data.length) {
+    if (data.length === 0) {
 
         tbody.innerHTML = `
 
@@ -771,79 +910,102 @@ function renderKasKeluar(data) {
     }
 
 
+    let html = "";
+
+
+    for (
+        let i = 0;
+        i < data.length;
+        i++
+    ) {
+
+        const item =
+            data[i];
+
+
+        html += `
+
+            <tr>
+
+                <td>
+                    ${i + 1}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        formatTanggal(
+                            item.tanggal
+                        )
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.kategori
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.keterangan
+                    )}
+                </td>
+
+                <td
+                    class="text-end fw-bold text-danger"
+                >
+                    ${formatRupiah(
+                        item.nominal
+                    )}
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+
     tbody.innerHTML =
-        data.map(
-            function (item, index) {
-
-                return `
-
-                    <tr>
-
-                        <td>
-                            ${index + 1}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                formatTanggal(
-                                    item.tanggal
-                                )
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.kategori
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.keterangan
-                            )}
-                        </td>
-
-                        <td class="text-end fw-bold text-danger">
-                            ${formatRupiah(
-                                item.nominal
-                            )}
-                        </td>
-
-                    </tr>
-
-                `;
-
-            }
-        ).join("");
+        html;
 
 }
 
 
-
 /* =========================================================
    FILTER PERIODE
-========================================================= */
 
-/* =========================================================
-   FILTER PERIODE
+   TIDAK MEMANGGIL API.
+
+   Filter langsung dari dataKas yang sudah ada.
+   Jadi klik Tampilkan sangat cepat.
 ========================================================= */
 
 function filterPeriode() {
 
-    const inputMulai = document.getElementById("tanggalMulai");
-    const inputAkhir = document.getElementById("tanggalAkhir");
-
-    const mulai = inputMulai.value;
-    const akhir = inputAkhir.value;
-
-    console.log("Tanggal mulai :", mulai);
-    console.log("Tanggal akhir :", akhir);
-    console.log("Total data    :", dataKas.length);
+    const inputMulai =
+        document.getElementById(
+            "tanggalMulai"
+        );
 
 
-    // ============================================
-    // VALIDASI
-    // ============================================
+    const inputAkhir =
+        document.getElementById(
+            "tanggalAkhir"
+        );
+
+
+    const mulai =
+        inputMulai.value;
+
+
+    const akhir =
+        inputAkhir.value;
+
+
+    /* -----------------------------------------
+       VALIDASI
+    ----------------------------------------- */
 
     if (!mulai || !akhir) {
 
@@ -852,6 +1014,7 @@ function filterPeriode() {
         );
 
         return;
+
     }
 
 
@@ -862,48 +1025,33 @@ function filterPeriode() {
         );
 
         return;
+
     }
 
 
-    // ============================================
-    // FILTER DATA
-    // ============================================
+    /* -----------------------------------------
+       FILTER
 
-    const hasil = dataKas.filter(function (item) {
+       tanggalKey sudah dibuat ketika API load,
+       jadi tidak perlu parse tanggal lagi.
+    ----------------------------------------- */
 
-        const tanggalItem =
-            tanggalKeYYYYMMDD(item.tanggal);
+    const hasil =
+        dataKas.filter(
+            function (item) {
 
-        console.log(
-            "Data:",
-            item.tanggal,
-            "=>",
-            tanggalItem
+                return (
+                    item.tanggalKey >= mulai &&
+                    item.tanggalKey <= akhir
+                );
+
+            }
         );
 
 
-        if (!tanggalItem) {
-            return false;
-        }
-
-
-        return (
-            tanggalItem >= mulai &&
-            tanggalItem <= akhir
-        );
-
-    });
-
-
-    console.log(
-        "Hasil filter:",
-        hasil
-    );
-
-
-    // ============================================
-    // TAMPILKAN PERIODE
-    // ============================================
+    /* -----------------------------------------
+       PERIODE
+    ----------------------------------------- */
 
     setText(
         "periode",
@@ -913,189 +1061,15 @@ function filterPeriode() {
     );
 
 
-    // ============================================
-    // TAMPILKAN HASIL
-    // ============================================
+    /* -----------------------------------------
+       TAMPILKAN
+    ----------------------------------------- */
 
-    tampilkanData(hasil);
-
-}
-
-
-
-/* =========================================================
-   KONVERSI TANGGAL KE YYYY-MM-DD
-========================================================= */
-
-function tanggalKeYYYYMMDD(value) {
-
-    if (!value) {
-        return "";
-    }
-
-
-    // ---------------------------------------------
-    // Kalau sudah YYYY-MM-DD
-    // ---------------------------------------------
-
-    const str =
-        String(value).trim();
-
-
-    if (
-        /^\d{4}-\d{2}-\d{2}$/.test(str)
-    ) {
-
-        return str;
-
-    }
-
-
-    // ---------------------------------------------
-    // DD/MM/YYYY
-    // ---------------------------------------------
-
-    let match =
-        str.match(
-            /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
-        );
-
-
-    if (match) {
-
-        const day =
-            String(match[1])
-                .padStart(2, "0");
-
-        const month =
-            String(match[2])
-                .padStart(2, "0");
-
-        const year =
-            match[3];
-
-
-        return (
-            year +
-            "-" +
-            month +
-            "-" +
-            day
-        );
-
-    }
-
-
-    // ---------------------------------------------
-    // DD-MM-YYYY
-    // ---------------------------------------------
-
-    match =
-        str.match(
-            /^(\d{1,2})-(\d{1,2})-(\d{4})$/
-        );
-
-
-    if (match) {
-
-        const day =
-            String(match[1])
-                .padStart(2, "0");
-
-        const month =
-            String(match[2])
-                .padStart(2, "0");
-
-        const year =
-            match[3];
-
-
-        return (
-            year +
-            "-" +
-            month +
-            "-" +
-            day
-        );
-
-    }
-
-
-    // ---------------------------------------------
-    // DATE OBJECT / ISO
-    // ---------------------------------------------
-
-    const d =
-        new Date(value);
-
-
-    if (
-        !isNaN(d.getTime())
-    ) {
-
-        const year =
-            d.getFullYear();
-
-        const month =
-            String(
-                d.getMonth() + 1
-            ).padStart(2, "0");
-
-        const day =
-            String(
-                d.getDate()
-            ).padStart(2, "0");
-
-
-        return (
-            year +
-            "-" +
-            month +
-            "-" +
-            day
-        );
-
-    }
-
-
-    return "";
+    tampilkanData(
+        hasil
+    );
 
 }
-
-
-
-/* =========================================================
-   FORMAT TANGGAL INDONESIA
-========================================================= */
-
-function formatTanggalIndonesia(value) {
-
-    if (!value) {
-        return "-";
-    }
-
-
-    const parts =
-        String(value).split("-");
-
-
-    if (parts.length === 3) {
-
-        return (
-            parts[2] +
-            "/" +
-            parts[1] +
-            "/" +
-            parts[0]
-        );
-
-    }
-
-
-    return value;
-
-}
-
 
 
 /* =========================================================
@@ -1103,7 +1077,6 @@ function formatTanggalIndonesia(value) {
 ========================================================= */
 
 function tampilkanSemuaData() {
-
 
     const mulai =
         document.getElementById(
@@ -1140,7 +1113,6 @@ function tampilkanSemuaData() {
 }
 
 
-
 /* =========================================================
    EVENT
 ========================================================= */
@@ -1148,7 +1120,6 @@ function tampilkanSemuaData() {
 document.addEventListener(
     "DOMContentLoaded",
     function () {
-
 
         const btnTampilkan =
             document.getElementById(
@@ -1182,15 +1153,23 @@ document.addEventListener(
         }
 
 
-        /* LOAD PERTAMA */
+        /* -----------------------------------------
+           LOAD PERTAMA
+        ----------------------------------------- */
 
         loadData();
 
 
-        /* AUTO REFRESH 30 DETIK */
+        /* -----------------------------------------
+           REFRESH BACKGROUND 30 DETIK
+        ----------------------------------------- */
 
         setInterval(
-            loadData,
+            function () {
+
+                loadData();
+
+            },
             30000
         );
 
