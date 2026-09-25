@@ -1,77 +1,695 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Laporan Kas DKM - Musholla Nurul Huda</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="Laporan Kas DKM Musholla Nurul Huda Pondok Dewata">
+
+    <meta name="theme-color"
+          content="#0f766e">
+
+    <title>LAPORAN KAS DKM</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
 </head>
+
 <body>
-<div class="topbar"></div>
 
-<main class="container py-4">
-  <header class="hero mb-4">
-    <div>
-      <div class="eyebrow">TRANSPARANSI KEUANGAN</div>
-      <h1>LAPORAN KAS DKM</h1>
-      <p>Musholla Nurul Huda Pondok Dewata</p>
-    </div>
-    <div class="update" id="lastUpdate">Memuat...</div>
-  </header>
+<!-- =========================================================
+     HEADER
+========================================================= -->
+<header class="header">
 
-  <section class="row g-3 mb-4">
-    <div class="col-md-4"><div class="card kpi saldo"><small>SALDO AKHIR</small><strong id="saldo">Rp 0</strong></div></div>
-    <div class="col-md-4"><div class="card kpi masuk"><small>TOTAL KAS MASUK</small><strong id="totalMasuk">Rp 0</strong></div></div>
-    <div class="col-md-4"><div class="card kpi keluar"><small>TOTAL KAS KELUAR</small><strong id="totalKeluar">Rp 0</strong></div></div>
-  </section>
+    <div class="header-container">
 
-  <section class="row g-4">
-    <div class="col-lg-6">
-      <div class="section-card">
-        <div class="section-title green">Kas Masuk per Kategori</div>
-        <div class="table-responsive">
-          <table class="table table-sm mb-0">
-            <thead><tr><th>No</th><th>Kategori</th><th class="text-center">Transaksi</th><th class="text-end">Jumlah</th></tr></thead>
-            <tbody id="tbodyRekapMasuk"><tr><td colspan="4" class="empty">Memuat data...</td></tr></tbody>
-            <tfoot><tr><th colspan="3" class="text-end">TOTAL</th><th id="totalKategoriMasuk" class="text-end">Rp 0</th></tr></tfoot>
-          </table>
+        <div class="header-brand">
+
+            <div class="brand-icon">
+                🕌
+            </div>
+
+            <div>
+                <h1>LAPORAN KAS DKM</h1>
+
+                <p>
+                    Musholla Nurul Huda Pondok Dewata
+                </p>
+            </div>
+
         </div>
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="section-card">
-        <div class="section-title red">Kas Keluar per Kategori</div>
-        <div class="table-responsive">
-          <table class="table table-sm mb-0">
-            <thead><tr><th>No</th><th>Kategori</th><th class="text-center">Transaksi</th><th class="text-end">Jumlah</th></tr></thead>
-            <tbody id="tbodyRekapKeluar"><tr><td colspan="4" class="empty">Memuat data...</td></tr></tbody>
-            <tfoot><tr><th colspan="3" class="text-end">TOTAL</th><th id="totalKategoriKeluar" class="text-end">Rp 0</th></tr></tfoot>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <section class="section-card mt-4">
-    <div class="section-head">
-      <h2>20 Transaksi Terakhir</h2>
-      <span id="lastUpdate2"></span>
+        <div class="header-info">
+            <span id="lastUpdate">
+                Memuat data...
+            </span>
+        </div>
+
     </div>
-    <div class="table-responsive">
-      <table class="table table-sm mb-0">
-        <thead><tr><th>No</th><th>Tanggal</th><th>Jenis</th><th>Kategori</th><th>Keterangan</th><th class="text-end">Nominal</th></tr></thead>
-        <tbody id="tbodyTerakhir"><tr><td colspan="6" class="empty">Memuat data...</td></tr></tbody>
-      </table>
+
+</header>
+
+
+<!-- =========================================================
+     LOADING OVERLAY
+========================================================= -->
+<div id="loadingOverlay" class="loading-overlay">
+
+    <div class="loading-box">
+
+        <div class="loading-spinner"></div>
+
+        <div class="loading-title">
+            Memuat Data
+        </div>
+
+        <div class="loading-text">
+            Mohon tunggu...
+        </div>
+
     </div>
-    <div class="detail-button">
-      <a class="btn btn-primary" href="transaksi.html">LIHAT SEMUA TRANSAKSI →</a>
+
+</div>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+<main class="container">
+
+
+    <!-- =====================================================
+         FILTER PERIODE
+    ====================================================== -->
+    <section class="filter-card">
+
+        <div class="section-title">
+
+            <div>
+                <h2>Filter Periode</h2>
+
+                <p>
+                    Pilih periode laporan kas
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="filter-form">
+
+            <div class="filter-group">
+
+                <label for="tanggalMulai">
+                    Dari Tanggal
+                </label>
+
+                <input
+                    type="date"
+                    id="tanggalMulai"
+                >
+
+            </div>
+
+
+            <div class="filter-group">
+
+                <label for="tanggalAkhir">
+                    Sampai Tanggal
+                </label>
+
+                <input
+                    type="date"
+                    id="tanggalAkhir"
+                >
+
+            </div>
+
+
+            <div class="filter-buttons">
+
+                <button
+                    type="button"
+                    id="btnTampilkan"
+                    class="btn btn-primary"
+                    onclick="filterPeriode()"
+                >
+                    Tampilkan
+                </button>
+
+
+                <button
+                    type="button"
+                    id="btnSemuaData"
+                    class="btn btn-secondary"
+                    onclick="tampilkanSemuaData()"
+                >
+                    Semua Data
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         KPI
+    ====================================================== -->
+    <section class="kpi-grid">
+
+
+        <!-- TOTAL MASUK -->
+        <div class="kpi-card kpi-masuk">
+
+            <div class="kpi-icon">
+                ↓
+            </div>
+
+            <div class="kpi-content">
+
+                <div class="kpi-label">
+                    TOTAL KAS MASUK
+                </div>
+
+                <div
+                    id="totalMasuk"
+                    class="kpi-value"
+                >
+                    Rp0
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- TOTAL KELUAR -->
+        <div class="kpi-card kpi-keluar">
+
+            <div class="kpi-icon">
+                ↑
+            </div>
+
+            <div class="kpi-content">
+
+                <div class="kpi-label">
+                    TOTAL KAS KELUAR
+                </div>
+
+                <div
+                    id="totalKeluar"
+                    class="kpi-value"
+                >
+                    Rp0
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- SALDO -->
+        <div class="kpi-card kpi-saldo">
+
+            <div class="kpi-icon">
+                Rp
+            </div>
+
+            <div class="kpi-content">
+
+                <div class="kpi-label">
+                    SALDO AKHIR
+                </div>
+
+                <div
+                    id="saldoAkhir"
+                    class="kpi-value"
+                >
+                    Rp0
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- JUMLAH TRANSAKSI -->
+        <div class="kpi-card kpi-transaksi">
+
+            <div class="kpi-icon">
+                #
+            </div>
+
+            <div class="kpi-content">
+
+                <div class="kpi-label">
+                    JUMLAH TRANSAKSI
+                </div>
+
+                <div
+                    id="jumlahTransaksi"
+                    class="kpi-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         20 TRANSAKSI TERAKHIR
+    ====================================================== -->
+    <section class="card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>
+                    20 Transaksi Terakhir
+                </h2>
+
+                <p>
+                    Menampilkan 20 transaksi terbaru,
+                    diurutkan dari transaksi terlama ke terbaru.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table class="data-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>No</th>
+
+                        <th>Tanggal</th>
+
+                        <th>Jenis</th>
+
+                        <th>Kategori</th>
+
+                        <th>Keterangan</th>
+
+                        <th>Nominal</th>
+
+                        <th>Petugas</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tbodyTransaksiTerakhir">
+
+                    <tr>
+
+                        <td
+                            colspan="7"
+                            class="empty-state"
+                        >
+                            Memuat data...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         KAS MASUK
+    ====================================================== -->
+    <section class="card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>
+                    Kas Masuk
+                </h2>
+
+                <p>
+                    Rincian transaksi kas masuk
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table class="data-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>No</th>
+
+                        <th>Tanggal</th>
+
+                        <th>Kategori</th>
+
+                        <th>Keterangan</th>
+
+                        <th>Nominal</th>
+
+                        <th>Petugas</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tbodyKasMasuk">
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="empty-state"
+                        >
+                            Memuat data...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         KAS KELUAR
+    ====================================================== -->
+    <section class="card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>
+                    Kas Keluar
+                </h2>
+
+                <p>
+                    Rincian transaksi kas keluar
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table class="data-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>No</th>
+
+                        <th>Tanggal</th>
+
+                        <th>Kategori</th>
+
+                        <th>Keterangan</th>
+
+                        <th>Nominal</th>
+
+                        <th>Petugas</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tbodyKasKeluar">
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="empty-state"
+                        >
+                            Memuat data...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         REKAP KAS MASUK PER KATEGORI
+    ====================================================== -->
+    <section class="card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>
+                    Rekap Kas Masuk per Kategori
+                </h2>
+
+                <p>
+                    Total transaksi berdasarkan kategori
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table class="data-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>No</th>
+
+                        <th>Kategori</th>
+
+                        <th>Transaksi</th>
+
+                        <th>Jumlah</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tbodyRekapMasuk">
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="empty-state"
+                        >
+                            Memuat data...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         REKAP KAS KELUAR PER KATEGORI
+    ====================================================== -->
+    <section class="card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>
+                    Rekap Kas Keluar per Kategori
+                </h2>
+
+                <p>
+                    Total pengeluaran berdasarkan kategori
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table class="data-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>No</th>
+
+                        <th>Kategori</th>
+
+                        <th>Transaksi</th>
+
+                        <th>Jumlah</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tbodyRekapKeluar">
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="empty-state"
+                        >
+                            Memuat data...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         ERROR MESSAGE
+    ====================================================== -->
+    <div
+        id="errorMessage"
+        class="error-message"
+        style="display:none;"
+    >
     </div>
-  </section>
+
+
 </main>
 
-<div id="loadingOverlay"><div class="spinner-border text-success"></div><div class="mt-2">Memuat data...</div></div>
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer class="footer">
+
+    <div class="container">
+
+        <p>
+            &copy;
+            <span id="tahunSekarang"></span>
+            DKM Musholla Nurul Huda Pondok Dewata
+        </p>
+
+        <p class="footer-small">
+            Laporan kas transparan untuk jamaah
+        </p>
+
+    </div>
+
+</footer>
+
+
+<!-- =========================================================
+     CONFIG
+========================================================= -->
 <script src="js/config.js"></script>
+
+
+<!-- =========================================================
+     APPLICATION
+========================================================= -->
 <script src="js/app.js"></script>
+
+
+<!-- =========================================================
+     FOOTER YEAR
+========================================================= -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const el = document.getElementById("tahunSekarang");
+
+    if (el) {
+        el.textContent = new Date().getFullYear();
+    }
+
+});
+</script>
+
 </body>
 </html>
