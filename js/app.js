@@ -1,41 +1,73 @@
+// ==========================================================
+// APP.JS - DASHBOARD KAS DKM
+// ==========================================================
+
+console.log("====================================");
+console.log("APP.JS START");
+console.log("====================================");
+
+
+// ==========================================================
+// API
+// ==========================================================
+
 const API_URL = SHEET_URL;
 
 
-// =====================================================
+// ==========================================================
 // FORMAT RUPIAH
-// =====================================================
+// ==========================================================
 
 function formatRupiah(value) {
+
+    const angka = Number(value) || 0;
 
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-    }).format(Number(value) || 0);
+    }).format(angka);
 
 }
 
 
-// =====================================================
+// ==========================================================
 // FORMAT TANGGAL
-// =====================================================
+// ==========================================================
 
 function formatTanggal(value) {
 
-    if (!value) return '-';
+    if (!value) {
+        return '-';
+    }
 
 
-    // Kalau sudah YYYY-MM-DD
+    // ==========================================
+    // YYYY-MM-DD
+    // ==========================================
 
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    if (
+        typeof value === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ) {
 
         const p = value.split('-');
 
-        return p[2] + '/' + p[1] + '/' + p[0];
+        return (
+            p[2] +
+            '/' +
+            p[1] +
+            '/' +
+            p[0]
+        );
 
     }
 
+
+    // ==========================================
+    // ISO DATE
+    // ==========================================
 
     const d = new Date(value);
 
@@ -58,16 +90,53 @@ function formatTanggal(value) {
 }
 
 
-// =====================================================
+// ==========================================================
+// ESCAPE HTML
+// ==========================================================
+
+function escapeHtml(value) {
+
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+}
+
+
+// ==========================================================
+// SET TEXT
+// ==========================================================
+
+function setText(id, value) {
+
+    const el = document.getElementById(id);
+
+    if (el) {
+        el.textContent = value;
+    }
+
+}
+
+
+// ==========================================================
 // LOAD DASHBOARD
-// =====================================================
+// ==========================================================
 
 async function loadDashboard() {
 
+    console.log("====================================");
+    console.log("LOAD DASHBOARD");
+    console.log("====================================");
+
+
     try {
 
-        console.log('LOAD DASHBOARD');
-
+        // ==========================================
+        // URL API
+        // ==========================================
 
         const url =
             API_URL +
@@ -75,44 +144,123 @@ async function loadDashboard() {
             Date.now();
 
 
-        console.log('API:', url);
+        console.log("API URL:", url);
 
 
-        const response =
-            await fetch(url, {
+        // ==========================================
+        // FETCH
+        // ==========================================
+
+        const response = await fetch(
+            url,
+            {
+                method: 'GET',
                 cache: 'no-store'
-            });
+            }
+        );
 
 
         console.log(
-            'HTTP STATUS:',
+            "HTTP STATUS:",
             response.status
         );
 
+
+        if (!response.ok) {
+
+            throw new Error(
+                'HTTP Error ' +
+                response.status
+            );
+
+        }
+
+
+        // ==========================================
+        // JSON
+        // ==========================================
 
         const result =
             await response.json();
 
 
         console.log(
-            'RESPONSE:',
+            "RESPONSE API:",
             result
         );
 
+
+        // ==========================================
+        // CEK SUCCESS
+        // ==========================================
 
         if (!result.success) {
 
             throw new Error(
                 result.message ||
-                'API gagal'
+                'API mengembalikan error'
             );
 
         }
 
 
-        // =========================
+        // ==========================================
+        // DEBUG
+        // ==========================================
+
+        console.log(
+            "TOTAL MASUK:",
+            result.totalMasuk
+        );
+
+
+        console.log(
+            "TOTAL KELUAR:",
+            result.totalKeluar
+        );
+
+
+        console.log(
+            "SALDO:",
+            result.saldo
+        );
+
+
+        console.log(
+            "JUMLAH TRANSAKSI:",
+            result.jumlahTransaksi
+        );
+
+
+        console.log(
+            "KATEGORI MASUK:",
+            result.kategoriMasuk
+        );
+
+
+        console.log(
+            "KATEGORI KELUAR:",
+            result.kategoriKeluar
+        );
+
+
+        console.log(
+            "TRANSAKSI TERAKHIR:",
+            result.transaksiTerakhir
+        );
+
+
+        // ==========================================
         // KPI
-        // =========================
+        // ==========================================
+
+        setText(
+            'saldo',
+            formatRupiah(
+                result.saldo
+            )
+        );
+
 
         setText(
             'totalMasuk',
@@ -131,167 +279,319 @@ async function loadDashboard() {
 
 
         setText(
-            'saldo',
-            formatRupiah(
-                result.saldo
-            )
-        );
-
-
-        setText(
             'jumlahTransaksi',
             result.jumlahTransaksi || 0
         );
 
 
-        // =========================
-        // REKAP KATEGORI MASUK
-        // =========================
+        // ==========================================
+        // KATEGORI MASUK
+        // ==========================================
 
-        renderKategori(
-            'tbodyRekapMasuk',
+        renderKategoriMasuk(
             result.kategoriMasuk || []
         );
 
 
-        // =========================
-        // REKAP KATEGORI KELUAR
-        // =========================
+        // ==========================================
+        // KATEGORI KELUAR
+        // ==========================================
 
-        renderKategori(
-            'tbodyRekapKeluar',
+        renderKategoriKeluar(
             result.kategoriKeluar || []
         );
 
 
-        // =========================
-        // TRANSAKSI TERAKHIR
-        // =========================
+        // ==========================================
+        // 20 TRANSAKSI TERAKHIR
+        // ==========================================
 
         renderTransaksiTerakhir(
             result.transaksiTerakhir || []
         );
 
 
+        // ==========================================
+        // TOTAL KATEGORI
+        // ==========================================
+
+        setText(
+            'totalKategoriMasuk',
+            formatRupiah(
+                totalKategori(
+                    result.kategoriMasuk || []
+                )
+            )
+        );
+
+
+        setText(
+            'totalKategoriKeluar',
+            formatRupiah(
+                totalKategori(
+                    result.kategoriKeluar || []
+                )
+            )
+        );
+
+
+        // ==========================================
+        // HIDE LOADING
+        // ==========================================
+
         hideLoading();
 
 
-    } catch (error) {
+        console.log(
+            "DASHBOARD BERHASIL DIMUAT"
+        );
+
+    }
+
+    catch (error) {
 
         console.error(
-            'ERROR DASHBOARD:',
+            "ERROR DASHBOARD:",
             error
         );
+
+
+        hideLoading();
 
 
         showError(
             error.message
         );
 
-        hideLoading();
-
     }
 
 }
 
 
-// =====================================================
-// SET TEXT
-// =====================================================
+// ==========================================================
+// TOTAL KATEGORI
+// ==========================================================
 
-function setText(id, value) {
+function totalKategori(data) {
 
-    const el =
-        document.getElementById(id);
+    return data.reduce(
+        function(total, item) {
 
+            return (
+                total +
+                (Number(item.jumlah) || 0)
+            );
 
-    if (el) {
-        el.textContent = value;
-    }
+        },
+        0
+    );
 
 }
 
 
-// =====================================================
-// REKAP KATEGORI
-// =====================================================
+// ==========================================================
+// RENDER KATEGORI MASUK
+// ==========================================================
 
-function renderKategori(
-    tbodyId,
-    data
-) {
+function renderKategoriMasuk(data) {
 
     const tbody =
         document.getElementById(
-            tbodyId
+            'tbodyRekapMasuk'
         );
 
 
-    if (!tbody) return;
+    if (!tbody) {
 
-
-    tbody.innerHTML = '';
-
-
-    if (!data.length) {
-
-        tbody.innerHTML =
-            '<tr>' +
-            '<td colspan="4" class="text-center">' +
-            'Belum ada data' +
-            '</td>' +
-            '</tr>';
+        console.error(
+            'tbodyRekapMasuk tidak ditemukan'
+        );
 
         return;
 
     }
 
 
-    data.forEach(function(item, index) {
-
-        const tr =
-            document.createElement('tr');
+    tbody.innerHTML = '';
 
 
-        tr.innerHTML =
+    // ==========================================
+    // SORT TERBESAR
+    // ==========================================
 
-            '<td>' +
-            (index + 1) +
-            '</td>' +
+    data.sort(
+        function(a, b) {
 
-            '<td>' +
-            escapeHtml(
-                item.kategori
-            ) +
-            '</td>' +
+            return (
+                Number(b.jumlah || 0) -
+                Number(a.jumlah || 0)
+            );
 
-            '<td>' +
-            Number(
-                item.transaksi || 0
-            ) +
-            '</td>' +
-
-            '<td class="text-end">' +
-            formatRupiah(
-                item.jumlah
-            ) +
-            '</td>';
+        }
+    );
 
 
-        tbody.appendChild(tr);
+    if (!data.length) {
 
-    });
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center">
+                    Belum ada data
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    data.forEach(
+        function(item, index) {
+
+            const tr =
+                document.createElement('tr');
+
+
+            tr.innerHTML = `
+
+                <td>
+                    ${index + 1}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.kategori
+                    )}
+                </td>
+
+                <td>
+                    ${Number(
+                        item.transaksi || 0
+                    )}
+                </td>
+
+                <td class="text-end">
+                    ${formatRupiah(
+                        item.jumlah
+                    )}
+                </td>
+
+            `;
+
+
+            tbody.appendChild(tr);
+
+        }
+    );
 
 }
 
 
-// =====================================================
-// TRANSAKSI TERAKHIR
-// =====================================================
+// ==========================================================
+// RENDER KATEGORI KELUAR
+// ==========================================================
 
-function renderTransaksiTerakhir(
-    data
-) {
+function renderKategoriKeluar(data) {
+
+    const tbody =
+        document.getElementById(
+            'tbodyRekapKeluar'
+        );
+
+
+    if (!tbody) {
+
+        console.error(
+            'tbodyRekapKeluar tidak ditemukan'
+        );
+
+        return;
+
+    }
+
+
+    tbody.innerHTML = '';
+
+
+    // ==========================================
+    // SORT TERBESAR
+    // ==========================================
+
+    data.sort(
+        function(a, b) {
+
+            return (
+                Number(b.jumlah || 0) -
+                Number(a.jumlah || 0)
+            );
+
+        }
+    );
+
+
+    if (!data.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center">
+                    Belum ada data
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    data.forEach(
+        function(item, index) {
+
+            const tr =
+                document.createElement('tr');
+
+
+            tr.innerHTML = `
+
+                <td>
+                    ${index + 1}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.kategori
+                    )}
+                </td>
+
+                <td>
+                    ${Number(
+                        item.transaksi || 0
+                    )}
+                </td>
+
+                <td class="text-end">
+                    ${formatRupiah(
+                        item.jumlah
+                    )}
+                </td>
+
+            `;
+
+
+            tbody.appendChild(tr);
+
+        }
+    );
+
+}
+
+
+// ==========================================================
+// RENDER 20 TRANSAKSI TERAKHIR
+// ==========================================================
+
+function renderTransaksiTerakhir(data) {
 
     const tbody =
         document.getElementById(
@@ -299,134 +599,204 @@ function renderTransaksiTerakhir(
         );
 
 
-    if (!tbody) return;
+    if (!tbody) {
 
-
-    tbody.innerHTML = '';
-
-
-    if (!data.length) {
-
-        tbody.innerHTML =
-            '<tr>' +
-            '<td colspan="7" class="text-center">' +
-            'Belum ada transaksi' +
-            '</td>' +
-            '</tr>';
+        console.error(
+            'tbodyTerakhir tidak ditemukan'
+        );
 
         return;
 
     }
 
 
-    data.forEach(function(item) {
-
-        const tr =
-            document.createElement('tr');
+    tbody.innerHTML = '';
 
 
-        tr.innerHTML =
+    // ======================================================
+    // URUTKAN TERBARU → TERLAMA
+    //
+    // Ini penting:
+    // transaksi terbaru HARUS berada di BARIS PALING ATAS
+    // ======================================================
 
-            '<td>' +
-            escapeHtml(
-                String(item.no)
-            ) +
-            '</td>' +
+    data.sort(
+        function(a, b) {
 
-            '<td>' +
-            formatTanggal(
-                item.tanggal
-            ) +
-            '</td>' +
+            const dateA =
+                new Date(
+                    a.tanggal
+                ).getTime();
 
-            '<td>' +
-            '<span class="badge ' +
-            (
+
+            const dateB =
+                new Date(
+                    b.tanggal
+                ).getTime();
+
+
+            if (dateB !== dateA) {
+
+                return (
+                    dateB -
+                    dateA
+                );
+
+            }
+
+
+            return (
+                Number(b.no || 0) -
+                Number(a.no || 0)
+            );
+
+        }
+    );
+
+
+    // ==========================================
+    // AMBIL 20
+    // ==========================================
+
+    data =
+        data.slice(0, 20);
+
+
+    // ==========================================
+    // TIDAK ADA DATA
+    // ==========================================
+
+    if (!data.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    Belum ada transaksi
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    // ==========================================
+    // RENDER
+    // ==========================================
+
+    data.forEach(
+        function(item) {
+
+            const tr =
+                document.createElement('tr');
+
+
+            const badgeClass =
                 item.jenis === 'MASUK'
                     ? 'bg-success'
-                    : 'bg-danger'
-            ) +
-            '">' +
-            escapeHtml(
-                item.jenis
-            ) +
-            '</span>' +
-            '</td>' +
-
-            '<td>' +
-            escapeHtml(
-                item.kategori
-            ) +
-            '</td>' +
-
-            '<td>' +
-            escapeHtml(
-                item.keterangan
-            ) +
-            '</td>' +
-
-            '<td class="text-end">' +
-            formatRupiah(
-                item.nominal
-            ) +
-            '</td>' +
-
-            '<td>' +
-            escapeHtml(
-                item.petugas || '-'
-            ) +
-            '</td>';
+                    : 'bg-danger';
 
 
-        tbody.appendChild(tr);
+            tr.innerHTML = `
 
-    });
+                <td>
+                    ${escapeHtml(
+                        item.no
+                    )}
+                </td>
 
-}
+                <td>
+                    ${formatTanggal(
+                        item.tanggal
+                    )}
+                </td>
+
+                <td>
+                    <span class="badge ${badgeClass}">
+                        ${escapeHtml(
+                            item.jenis
+                        )}
+                    </span>
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.kategori
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.keterangan
+                    )}
+                </td>
+
+                <td class="text-end">
+                    ${formatRupiah(
+                        item.nominal
+                    )}
+                </td>
+
+            `;
 
 
-// =====================================================
-// HTML ESCAPE
-// =====================================================
+            tbody.appendChild(tr);
 
-function escapeHtml(value) {
-
-    return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+        }
+    );
 
 }
 
 
-// =====================================================
+// ==========================================================
 // LOADING
-// =====================================================
+// ==========================================================
 
 function hideLoading() {
 
-    const el =
+    const loading =
         document.getElementById(
             'loadingOverlay'
         );
 
 
-    if (el) {
-        el.style.display = 'none';
+    if (loading) {
+
+        loading.style.display =
+            'none';
+
     }
+
+
+    // Jika ada teks Memuat...
+
+    document
+        .querySelectorAll(
+            '.loading'
+        )
+        .forEach(
+            function(el) {
+
+                el.style.display =
+                    'none';
+
+            }
+        );
 
 }
 
 
-// =====================================================
+// ==========================================================
 // ERROR
-// =====================================================
+// ==========================================================
 
 function showError(message) {
 
-    console.error(message);
+    console.error(
+        "DASHBOARD ERROR:",
+        message
+    );
 
 
     const el =
@@ -441,24 +811,33 @@ function showError(message) {
             'Gagal memuat data: ' +
             message;
 
-        el.style.display = 'block';
+
+        el.style.display =
+            'block';
 
     }
 
 }
 
 
-// =====================================================
-// START
-// =====================================================
+// ==========================================================
+// DOM READY
+// ==========================================================
 
 document.addEventListener(
     'DOMContentLoaded',
     function() {
 
         console.log(
-            'DOM READY'
+            "DOM READY"
         );
+
+
+        console.log(
+            "SHEET_URL:",
+            SHEET_URL
+        );
+
 
         loadDashboard();
 
