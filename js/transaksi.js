@@ -1,1565 +1,169 @@
-// ==========================================================
-// TRANSAKSI.JS
-// ==========================================================
-//
-// HALAMAN TRANSAKSI KAS DKM
-//
-// FITUR:
-//
-// 1. Filter tanggal
-// 2. Filter jenis MASUK / KELUAR
-// 3. Filter kategori
-// 4. Total transaksi
-// 5. Total kas masuk
-// 6. Total kas keluar
-// 7. Saldo
-// 8. Pagination
-// 9. Previous / Next
-// 10. Nomor halaman
-//
-// DATA DIAMBIL DARI:
-//
-// ?action=transaksi
-//
-// ==========================================================
+"use strict";
 
 
-// ==========================================================
-// API
-// ==========================================================
+/* =========================================================
+   API
+========================================================= */
 
 const API_URL = SHEET_URL;
 
 
-// ==========================================================
-// STATE
-// ==========================================================
+/* =========================================================
+   STATE
+========================================================= */
 
 let currentPage = 1;
 
+const LIMIT = 50;
 
-// JUMLAH DATA PER HALAMAN
+let sedangMemuat = false;
 
-const limit = 20;
+let controllerRequest = null;
 
 
-// ==========================================================
-// FORMAT RUPIAH
-// ==========================================================
+/* =========================================================
+   FORMAT RUPIAH
+========================================================= */
 
 function formatRupiah(value) {
 
-    const angka =
+    const number =
         Number(value) || 0;
 
-
     return new Intl.NumberFormat(
-        'id-ID',
+        "id-ID",
         {
-            style: 'currency',
-            currency: 'IDR',
+            style: "currency",
+            currency: "IDR",
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }
-    ).format(angka);
+    ).format(number);
 
 }
 
 
-// ==========================================================
-// FORMAT ANGKA
-// ==========================================================
+/* =========================================================
+   PARSE TANGGAL
+========================================================= */
 
-function formatAngka(value) {
-
-    return new Intl.NumberFormat(
-        'id-ID'
-    ).format(
-        Number(value) || 0
-    );
-
-}
-
-
-// ==========================================================
-// FORMAT TANGGAL
-// ==========================================================
-
-function formatTanggal(value) {
+function parseTanggal(value) {
 
     if (!value) {
-
-        return '-';
-
+        return null;
     }
 
 
-    // ======================================================
-    // YYYY-MM-DD
-    // ======================================================
-
-    if (
-
-        typeof value === 'string' &&
-
-        /^\d{4}-\d{2}-\d{2}$/.test(value)
-
-    ) {
-
-        const p =
-            value.split('-');
+    const str =
+        String(value).trim();
 
 
-        return (
+    /* ---------------------------------------------
+       YYYY-MM-DD
+    --------------------------------------------- */
 
-            p[2] +
-            '/' +
-            p[1] +
-            '/' +
-            p[0]
+    let match =
+        str.match(
+            /^(\d{4})-(\d{2})-(\d{2})$/
+        );
 
+
+    if (match) {
+
+        return new Date(
+            Number(match[1]),
+            Number(match[2]) - 1,
+            Number(match[3])
         );
 
     }
 
 
-    // ======================================================
-    // ISO DATE
-    // ======================================================
+    /* ---------------------------------------------
+       DD/MM/YYYY
+    --------------------------------------------- */
+
+    match =
+        str.match(
+            /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+        );
+
+
+    if (match) {
+
+        return new Date(
+            Number(match[3]),
+            Number(match[2]) - 1,
+            Number(match[1])
+        );
+
+    }
+
+
+    /* ---------------------------------------------
+       ISO / DATE
+    --------------------------------------------- */
 
     const d =
-        new Date(value);
+        new Date(str);
 
 
-    if (
-        isNaN(
-            d.getTime()
-        )
-    ) {
+    if (!isNaN(d.getTime())) {
 
-        return value;
+        return d;
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =========================================================
+   FORMAT TANGGAL
+   HASIL DD/MM/YYYY
+========================================================= */
+
+function formatTanggal(value) {
+
+    if (!value) {
+        return "-";
+    }
+
+
+    const d =
+        parseTanggal(value);
+
+
+    if (!d || isNaN(d.getTime())) {
+
+        return "-";
 
     }
 
 
     return new Intl.DateTimeFormat(
-
-        'id-ID',
-
+        "id-ID",
         {
-            timeZone:
-                'Asia/Jakarta',
-
-            day:
-                '2-digit',
-
-            month:
-                '2-digit',
-
-            year:
-                'numeric'
+            timeZone: "Asia/Jakarta",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
         }
-
     ).format(d);
 
 }
 
 
-// ==========================================================
-// ESCAPE HTML
-// ==========================================================
-
-function escapeHtml(value) {
-
-    return String(
-        value ?? ''
-    )
-
-        .replace(
-            /&/g,
-            '&amp;'
-        )
-
-        .replace(
-            /</g,
-            '&lt;'
-        )
-
-        .replace(
-            />/g,
-            '&gt;'
-        )
-
-        .replace(
-            /"/g,
-            '&quot;'
-        )
-
-        .replace(
-            /'/g,
-            '&#039;'
-        );
-
-}
-
-
-// ==========================================================
-// AMBIL NILAI FILTER
-// ==========================================================
-
-function getFilterValues() {
-
-    const tanggalMulai =
-        document.getElementById(
-            'tanggalMulai'
-        );
-
-
-    const tanggalAkhir =
-        document.getElementById(
-            'tanggalAkhir'
-        );
-
-
-    const filterJenis =
-        document.getElementById(
-            'filterJenis'
-        );
-
-
-    const filterKategori =
-        document.getElementById(
-            'filterKategori'
-        );
-
-
-    return {
-
-        mulai:
-            tanggalMulai
-                ? tanggalMulai.value
-                : '',
-
-        akhir:
-            tanggalAkhir
-                ? tanggalAkhir.value
-                : '',
-
-        jenis:
-            filterJenis
-                ? filterJenis.value
-                : '',
-
-        kategori:
-            filterKategori
-                ? filterKategori.value
-                : ''
-
-    };
-
-}
-
-
-// ==========================================================
-// LOAD TRANSAKSI
-// ==========================================================
-
-async function loadTransaksi(
-    page = 1
-) {
-
-    try {
-
-        // ==================================================
-        // NORMALISASI PAGE
-        // ==================================================
-
-        page =
-            parseInt(
-                page,
-                10
-            );
-
-
-        if (
-            isNaN(page) ||
-            page < 1
-        ) {
-
-            page = 1;
-
-        }
-
-
-        currentPage =
-            page;
-
-
-        // ==================================================
-        // AMBIL FILTER
-        // ==================================================
-
-        const filter =
-            getFilterValues();
-
-
-        console.log(
-            '===================================='
-        );
-
-
-        console.log(
-            'LOAD TRANSAKSI'
-        );
-
-
-        console.log(
-            'PAGE:',
-            page
-        );
-
-
-        console.log(
-            'FILTER:',
-            filter
-        );
-
-
-        // ==================================================
-        // VALIDASI TANGGAL
-        // ==================================================
-
-        if (
-            filter.mulai &&
-            filter.akhir &&
-            filter.mulai >
-            filter.akhir
-        ) {
-
-            alert(
-                'Tanggal mulai tidak boleh lebih besar dari tanggal akhir.'
-            );
-
-
-            return;
-
-        }
-
-
-        // ==================================================
-        // PARAMETER API
-        // ==================================================
-
-        const params =
-            new URLSearchParams();
-
-
-        params.set(
-            'action',
-            'transaksi'
-        );
-
-
-        params.set(
-            'page',
-            page
-        );
-
-
-        params.set(
-            'limit',
-            limit
-        );
-
-
-        // ==================================================
-        // FILTER TANGGAL MULAI
-        // ==================================================
-
-        if (
-            filter.mulai
-        ) {
-
-            params.set(
-                'mulai',
-                filter.mulai
-            );
-
-        }
-
-
-        // ==================================================
-        // FILTER TANGGAL AKHIR
-        // ==================================================
-
-        if (
-            filter.akhir
-        ) {
-
-            params.set(
-                'akhir',
-                filter.akhir
-            );
-
-        }
-
-
-        // ==================================================
-        // FILTER JENIS
-        // ==================================================
-
-        if (
-            filter.jenis
-        ) {
-
-            params.set(
-                'jenis',
-                filter.jenis
-            );
-
-        }
-
-
-        // ==================================================
-        // FILTER KATEGORI
-        // ==================================================
-
-        if (
-            filter.kategori
-        ) {
-
-            params.set(
-                'kategori',
-                filter.kategori
-            );
-
-        }
-
-
-        // ==================================================
-        // CACHE BUSTER
-        // ==================================================
-
-        params.set(
-            '_',
-            Date.now()
-        );
-
-
-        // ==================================================
-        // URL
-        // ==================================================
-
-        const url =
-            API_URL +
-            '?' +
-            params.toString();
-
-
-        console.log(
-            'API URL:',
-            url
-        );
-
-
-        // ==================================================
-        // LOADING
-        // ==================================================
-
-        showLoading();
-
-
-        // ==================================================
-        // FETCH
-        // ==================================================
-
-        const response =
-            await fetch(
-
-                url,
-
-                {
-                    method:
-                        'GET',
-
-                    cache:
-                        'no-store'
-                }
-
-            );
-
-
-        console.log(
-            'HTTP STATUS:',
-            response.status
-        );
-
-
-        // ==================================================
-        // CEK HTTP
-        // ==================================================
-
-        if (
-            !response.ok
-        ) {
-
-            throw new Error(
-
-                'HTTP Error ' +
-                response.status
-
-            );
-
-        }
-
-
-        // ==================================================
-        // JSON
-        // ==================================================
-
-        const result =
-            await response.json();
-
-
-        console.log(
-            'API RESPONSE:',
-            result
-        );
-
-
-        // ==================================================
-        // CEK SUCCESS
-        // ==================================================
-
-        if (
-            !result.success
-        ) {
-
-            throw new Error(
-
-                result.message ||
-                'API gagal'
-
-            );
-
-        }
-
-
-        // ==================================================
-        // RENDER TABLE
-        // ==================================================
-
-        renderTable(
-            result.data || []
-        );
-
-
-        // ==================================================
-        // UPDATE TOTAL TRANSAKSI
-        // ==================================================
-
-        setText(
-
-            'jumlahTransaksi',
-
-            formatAngka(
-                result.total || 0
-            )
-
-        );
-
-
-        // ==================================================
-        // UPDATE TOTAL MASUK
-        // ==================================================
-
-        setText(
-
-            'totalMasuk',
-
-            formatRupiah(
-                result.totalMasuk || 0
-            )
-
-        );
-
-
-        // ==================================================
-        // UPDATE TOTAL KELUAR
-        // ==================================================
-
-        setText(
-
-            'totalKeluar',
-
-            formatRupiah(
-                result.totalKeluar || 0
-            )
-
-        );
-
-
-        // ==================================================
-        // UPDATE SALDO
-        // ==================================================
-
-        setText(
-
-            'saldo',
-
-            formatRupiah(
-                result.saldo || 0
-            )
-
-        );
-
-
-        // ==================================================
-        // OPTIONAL ID LAIN
-        // ==================================================
-
-        setText(
-
-            'rekapMasuk',
-
-            formatRupiah(
-                result.totalMasuk || 0
-            )
-
-        );
-
-
-        setText(
-
-            'rekapKeluar',
-
-            formatRupiah(
-                result.totalKeluar || 0
-            )
-
-        );
-
-
-        setText(
-
-            'rekapSaldo',
-
-            formatRupiah(
-                result.saldo || 0
-            )
-
-        );
-
-
-        // ==================================================
-        // PERIODE
-        // ==================================================
-
-        updatePeriode(
-            filter.mulai,
-            filter.akhir
-        );
-
-
-        // ==================================================
-        // PAGINATION
-        // ==================================================
-
-        renderPagination(
-
-            result.page || page,
-
-            result.totalPages || 1,
-
-            result.total || 0
-
-        );
-
-
-        // ==================================================
-        // HIDE LOADING
-        // ==================================================
-
-        hideLoading();
-
-
-        console.log(
-            'TRANSAKSI BERHASIL'
-        );
-
-
-    }
-
-    catch (error) {
-
-        console.error(
-            'ERROR LOAD TRANSAKSI:',
-            error
-        );
-
-
-        hideLoading();
-
-
-        showError(
-            error.message
-        );
-
-    }
-
-}
-
-
-// ==========================================================
-// RENDER TABLE
-// ==========================================================
-
-function renderTable(
-    data
-) {
-
-    const tbody =
-        document.getElementById(
-            'tbodyTransaksi'
-        );
-
-
-    if (!tbody) {
-
-        console.error(
-            'tbodyTransaksi tidak ditemukan'
-        );
-
-
-        return;
-
-    }
-
-
-    tbody.innerHTML =
-        '';
-
-
-    // ======================================================
-    // KOSONG
-    // ======================================================
-
-    if (
-        !Array.isArray(data) ||
-        data.length === 0
-    ) {
-
-        tbody.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="7"
-                    class="text-center text-muted py-4"
-                >
-
-                    Data tidak ditemukan
-
-                </td>
-
-            </tr>
-
-        `;
-
-
-        return;
-
-    }
-
-
-    // ======================================================
-    // RENDER DATA
-    // ======================================================
-
-    data.forEach(
-
-        function(
-            item
-        ) {
-
-            const tr =
-                document.createElement(
-                    'tr'
-                );
-
-
-            // ==================================================
-            // BADGE
-            // ==================================================
-
-            let badgeClass =
-                'bg-secondary';
-
-
-            if (
-                item.jenis ===
-                'MASUK'
-            ) {
-
-                badgeClass =
-                    'bg-success';
-
-            }
-
-
-            if (
-                item.jenis ===
-                'KELUAR'
-            ) {
-
-                badgeClass =
-                    'bg-danger';
-
-            }
-
-
-            // ==================================================
-            // ROW
-            // ==================================================
-
-            tr.innerHTML = `
-
-                <td>
-
-                    ${escapeHtml(
-                        item.no
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${formatTanggal(
-                        item.tanggal
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    <span
-                        class="badge ${badgeClass}"
-                    >
-
-                        ${escapeHtml(
-                            item.jenis
-                        )}
-
-                    </span>
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHtml(
-                        item.kategori
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHtml(
-                        item.keterangan
-                    )}
-
-                </td>
-
-
-                <td class="text-end">
-
-                    ${formatRupiah(
-                        item.nominal
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHtml(
-                        item.petugas ||
-                        '-'
-                    )}
-
-                </td>
-
-            `;
-
-
-            tbody.appendChild(
-                tr
-            );
-
-        }
-
-    );
-
-}
-
-
-// ==========================================================
-// PAGINATION
-// ==========================================================
-//
-// Dibuat dengan:
-//
-// [‹ Sebelumnya]
-// [1]
-// [2]
-// [3]
-// ...
-// [Berikutnya ›]
-//
-// ==========================================================
-
-function renderPagination(
-
-    page,
-
-    totalPages,
-
-    totalData
-
-) {
-
-    const container =
-        document.getElementById(
-            'pagination'
-        );
-
-
-    if (!container) {
-
-        console.error(
-            'Element pagination tidak ditemukan'
-        );
-
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        '';
-
-
-    // ======================================================
-    // TOTAL DATA INFO
-    // ======================================================
-
-    const info =
-        document.createElement(
-            'div'
-        );
-
-
-    info.className =
-        'text-muted small me-3';
-
-
-    info.textContent =
-
-        'Total ' +
-
-        formatAngka(
-            totalData
-        ) +
-
-        ' transaksi';
-
-
-    container.appendChild(
-        info
-    );
-
-
-    // ======================================================
-    // JIKA HANYA 1 HALAMAN
-    // ======================================================
-
-    if (
-        totalPages <= 1
-    ) {
-
-        return;
-
-    }
-
-
-    // ======================================================
-    // PREVIOUS
-    // ======================================================
-
-    const prev =
-        document.createElement(
-            'button'
-        );
-
-
-    prev.type =
-        'button';
-
-
-    prev.className =
-        'btn btn-sm btn-outline-primary';
-
-
-    prev.textContent =
-        '‹ Sebelumnya';
-
-
-    prev.disabled =
-        page <= 1;
-
-
-    prev.addEventListener(
-
-        'click',
-
-        function() {
-
-            if (
-                currentPage > 1
-            ) {
-
-                loadTransaksi(
-
-                    currentPage - 1
-
-                );
-
-            }
-
-        }
-
-    );
-
-
-    container.appendChild(
-        prev
-    );
-
-
-    // ======================================================
-    // NOMOR HALAMAN
-    // ======================================================
-
-    const maxButtons =
-        7;
-
-
-    let startPage =
-        Math.max(
-            1,
-            page - 3
-        );
-
-
-    let endPage =
-        Math.min(
-            totalPages,
-            startPage +
-            maxButtons -
-            1
-        );
-
-
-    // ======================================================
-    // SESUAIKAN START
-    // ======================================================
-
-    if (
-        endPage -
-        startPage +
-        1 <
-        maxButtons
-    ) {
-
-        startPage =
-            Math.max(
-                1,
-                endPage -
-                maxButtons +
-                1
-            );
-
-    }
-
-
-    // ======================================================
-    // FIRST PAGE
-    // ======================================================
-
-    if (
-        startPage > 1
-    ) {
-
-        appendPageButton(
-            container,
-            1,
-            page
-        );
-
-
-        if (
-            startPage > 2
-        ) {
-
-            appendDots(
-                container
-            );
-
-        }
-
-    }
-
-
-    // ======================================================
-    // PAGE BUTTONS
-    // ======================================================
-
-    for (
-
-        let i =
-            startPage;
-
-        i <=
-        endPage;
-
-        i++
-
-    ) {
-
-        appendPageButton(
-
-            container,
-
-            i,
-
-            page
-
-        );
-
-    }
-
-
-    // ======================================================
-    // LAST PAGE
-    // ======================================================
-
-    if (
-        endPage <
-        totalPages
-    ) {
-
-        if (
-            endPage <
-            totalPages - 1
-        ) {
-
-            appendDots(
-                container
-            );
-
-        }
-
-
-        appendPageButton(
-
-            container,
-
-            totalPages,
-
-            page
-
-        );
-
-    }
-
-
-    // ======================================================
-    // NEXT
-    // ======================================================
-
-    const next =
-        document.createElement(
-            'button'
-        );
-
-
-    next.type =
-        'button';
-
-
-    next.className =
-        'btn btn-sm btn-outline-primary';
-
-
-    next.textContent =
-        'Berikutnya ›';
-
-
-    next.disabled =
-        page >= totalPages;
-
-
-    next.addEventListener(
-
-        'click',
-
-        function() {
-
-            if (
-                currentPage <
-                totalPages
-            ) {
-
-                loadTransaksi(
-
-                    currentPage + 1
-
-                );
-
-            }
-
-        }
-
-    );
-
-
-    container.appendChild(
-        next
-    );
-
-}
-
-
-// ==========================================================
-// APPEND PAGE BUTTON
-// ==========================================================
-
-function appendPageButton(
-
-    container,
-
-    pageNumber,
-
-    activePage
-
-) {
-
-    const button =
-        document.createElement(
-            'button'
-        );
-
-
-    button.type =
-        'button';
-
-
-    button.className =
-        'btn btn-sm ';
-
-
-    if (
-        pageNumber ===
-        activePage
-    ) {
-
-        button.className +=
-            'btn-primary';
-
-    }
-
-    else {
-
-        button.className +=
-            'btn-outline-primary';
-
-    }
-
-
-    button.textContent =
-        pageNumber;
-
-
-    button.addEventListener(
-
-        'click',
-
-        function() {
-
-            if (
-                pageNumber !==
-                currentPage
-            ) {
-
-                loadTransaksi(
-                    pageNumber
-                );
-
-            }
-
-        }
-
-    );
-
-
-    container.appendChild(
-        button
-    );
-
-}
-
-
-// ==========================================================
-// DOTS
-// ==========================================================
-
-function appendDots(
-    container
-) {
-
-    const span =
-        document.createElement(
-            'span'
-        );
-
-
-    span.className =
-        'px-2';
-
-
-    span.textContent =
-        '...';
-
-
-    container.appendChild(
-        span
-    );
-
-}
-
-
-// ==========================================================
-// FILTER
-// ==========================================================
-
-function filterData() {
-
-    console.log(
-        'FILTER DATA'
-    );
-
-
-    // SELALU KEMBALI HALAMAN 1
-
-    loadTransaksi(
-        1
-    );
-
-}
-
-
-// ==========================================================
-// FILTER PERIODE
-// ==========================================================
-//
-// Dipertahankan untuk kompatibilitas
-// dengan tombol lama:
-// Tampilkan
-//
-// ==========================================================
-
-function filterPeriode() {
-
-    filterData();
-
-}
-
-
-// ==========================================================
-// RESET FILTER
-// ==========================================================
-
-function resetFilter() {
-
-    console.log(
-        'RESET FILTER'
-    );
-
-
-    const ids = [
-
-        'tanggalMulai',
-
-        'tanggalAkhir',
-
-        'filterJenis',
-
-        'filterKategori'
-
-    ];
-
-
-    ids.forEach(
-
-        function(id) {
-
-            const el =
-                document.getElementById(
-                    id
-                );
-
-
-            if (el) {
-
-                el.value =
-                    '';
-
-            }
-
-        }
-
-    );
-
-
-    updatePeriode(
-        '',
-        ''
-    );
-
-
-    loadTransaksi(
-        1
-    );
-
-}
-
-
-// ==========================================================
-// TAMPILKAN SEMUA
-// ==========================================================
-//
-// Kompatibilitas dengan tombol:
-// "Semua Data"
-//
-// ==========================================================
-
-function tampilkanSemuaData() {
-
-    resetFilter();
-
-}
-
-
-// ==========================================================
-// UPDATE PERIODE
-// ==========================================================
-
-function updatePeriode(
-
-    mulai,
-
-    akhir
-
-) {
+/* =========================================================
+   SET TEXT
+========================================================= */
+
+function setText(id, value) {
 
     const el =
-        document.getElementById(
-            'periode'
-        );
-
-
-    if (!el) {
-
-        return;
-
-    }
-
-
-    if (
-        mulai &&
-        akhir
-    ) {
-
-        el.textContent =
-
-            formatTanggal(
-                mulai
-            ) +
-
-            ' s/d ' +
-
-            formatTanggal(
-                akhir
-            );
-
-    }
-
-    else if (
-        mulai
-    ) {
-
-        el.textContent =
-
-            'Mulai ' +
-
-            formatTanggal(
-                mulai
-            );
-
-    }
-
-    else if (
-        akhir
-    ) {
-
-        el.textContent =
-
-            'Sampai ' +
-
-            formatTanggal(
-                akhir
-            );
-
-    }
-
-    else {
-
-        el.textContent =
-            'Semua Data';
-
-    }
-
-}
-
-
-// ==========================================================
-// SET TEXT
-// ==========================================================
-
-function setText(
-    id,
-    value
-) {
-
-    const el =
-        document.getElementById(
-            id
-        );
+        document.getElementById(id);
 
 
     if (el) {
@@ -1572,258 +176,1180 @@ function setText(
 }
 
 
-// ==========================================================
-// LOADING
-// ==========================================================
+/* =========================================================
+   NORMALISASI TRANSAKSI
+========================================================= */
+
+function normalisasiTransaksi(data) {
+
+    if (!Array.isArray(data)) {
+
+        return [];
+
+    }
+
+
+    return data.map(
+        function(item, index) {
+
+            const jenis =
+                String(
+                    item?.jenis ?? ""
+                )
+                .trim()
+                .toUpperCase();
+
+
+            let kategori =
+                String(
+                    item?.kategori ?? ""
+                )
+                .trim()
+                .toUpperCase();
+
+
+            if (!kategori) {
+
+                kategori =
+                    "LAINNYA";
+
+            }
+
+
+            return {
+
+                no:
+                    item?.no ??
+                    index + 1,
+
+                tanggal:
+                    String(
+                        item?.tanggal ?? ""
+                    ),
+
+                jenis:
+                    jenis === "MASUK"
+                        ? "MASUK"
+                        : jenis === "KELUAR"
+                            ? "KELUAR"
+                            : jenis,
+
+                kategori:
+                    kategori,
+
+                keterangan:
+                    String(
+                        item?.keterangan ?? ""
+                    ),
+
+                nominal:
+                    Number(
+                        item?.nominal
+                    ) || 0,
+
+                petugas:
+                    String(
+                        item?.petugas ?? ""
+                    )
+
+            };
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   VALIDASI RESPONSE API
+========================================================= */
+
+function validasiResponse(result) {
+
+    if (!result) {
+
+        throw new Error(
+            "Response server kosong."
+        );
+
+    }
+
+
+    if (
+        result.success !== true
+    ) {
+
+        throw new Error(
+            "Data transaksi tidak dapat dimuat."
+        );
+
+    }
+
+
+    if (
+        !Array.isArray(result.data)
+    ) {
+
+        throw new Error(
+            "Format data transaksi tidak valid."
+        );
+
+    }
+
+
+    return result;
+
+}
+
+
+/* =========================================================
+   LOAD TRANSAKSI
+========================================================= */
+
+async function loadTransaksi(
+    page = 1
+) {
+
+    if (sedangMemuat) {
+
+        return;
+
+    }
+
+
+    sedangMemuat = true;
+
+
+    try {
+
+        /* =============================================
+           VALIDASI PAGE
+        ============================================= */
+
+        page =
+            Math.max(
+                1,
+                parseInt(page, 10) || 1
+            );
+
+
+        currentPage =
+            page;
+
+
+        /* =============================================
+           BATALKAN REQUEST SEBELUMNYA
+        ============================================= */
+
+        if (controllerRequest) {
+
+            controllerRequest.abort();
+
+        }
+
+
+        controllerRequest =
+            new AbortController();
+
+
+        /* =============================================
+           AMBIL FILTER
+        ============================================= */
+
+        const mulaiEl =
+            document.getElementById(
+                "tanggalMulai"
+            );
+
+
+        const akhirEl =
+            document.getElementById(
+                "tanggalAkhir"
+            );
+
+
+        const jenisEl =
+            document.getElementById(
+                "filterJenis"
+            );
+
+
+        const kategoriEl =
+            document.getElementById(
+                "filterKategori"
+            );
+
+
+        const mulai =
+            mulaiEl?.value || "";
+
+
+        const akhir =
+            akhirEl?.value || "";
+
+
+        const jenis =
+            jenisEl?.value || "";
+
+
+        const kategori =
+            kategoriEl?.value || "";
+
+
+        /* =============================================
+           VALIDASI TANGGAL
+        ============================================= */
+
+        if (
+            mulai &&
+            akhir &&
+            mulai > akhir
+        ) {
+
+            alert(
+                "Tanggal mulai tidak boleh lebih besar dari tanggal akhir."
+            );
+
+            return;
+
+        }
+
+
+        /* =============================================
+           BUAT PARAMETER
+        ============================================= */
+
+        const params =
+            new URLSearchParams();
+
+
+        params.set(
+            "action",
+            "transaksi"
+        );
+
+
+        params.set(
+            "page",
+            String(page)
+        );
+
+
+        /*
+         * LIMIT TETAP DIKONTROL DI FRONTEND.
+         * BACKEND JUGA WAJIB MEMBATASINYA.
+         */
+
+        params.set(
+            "limit",
+            String(LIMIT)
+        );
+
+
+        if (mulai) {
+
+            params.set(
+                "mulai",
+                mulai
+            );
+
+        }
+
+
+        if (akhir) {
+
+            params.set(
+                "akhir",
+                akhir
+            );
+
+        }
+
+
+        if (jenis) {
+
+            params.set(
+                "jenis",
+                jenis
+                    .trim()
+                    .toUpperCase()
+            );
+
+        }
+
+
+        if (kategori) {
+
+            params.set(
+                "kategori",
+                kategori
+                    .trim()
+                    .toUpperCase()
+            );
+
+        }
+
+
+        /*
+         * CACHE BUSTER
+         */
+
+        params.set(
+            "_",
+            String(
+                Date.now()
+            )
+        );
+
+
+        const url =
+            API_URL +
+            "?" +
+            params.toString();
+
+
+        console.log(
+            "TRANSAKSI API REQUEST"
+        );
+
+
+        /* =============================================
+           REQUEST
+        ============================================= */
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: "GET",
+
+                    cache: "no-store",
+
+                    signal:
+                        controllerRequest.signal,
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Server tidak dapat dihubungi."
+            );
+
+        }
+
+
+        /* =============================================
+           JSON
+        ============================================= */
+
+        let result;
+
+
+        try {
+
+            result =
+                await response.json();
+
+        } catch (jsonError) {
+
+            throw new Error(
+                "Response server bukan JSON yang valid."
+            );
+
+        }
+
+
+        console.log(
+            "TRANSAKSI RESPONSE:",
+            result
+        );
+
+
+        /* =============================================
+           VALIDASI
+        ============================================= */
+
+        validasiResponse(
+            result
+        );
+
+
+        /* =============================================
+           NORMALISASI
+        ============================================= */
+
+        const data =
+            normalisasiTransaksi(
+                result.data
+            );
+
+
+        /* =============================================
+           RENDER
+        ============================================= */
+
+        renderTable(
+            data
+        );
+
+
+        /* =============================================
+           KPI
+        ============================================= */
+
+        const totalMasuk =
+            Number(
+                result.totalMasuk
+            ) || 0;
+
+
+        const totalKeluar =
+            Number(
+                result.totalKeluar
+            ) || 0;
+
+
+        let saldo;
+
+
+        if (
+            result.saldo !== undefined &&
+            result.saldo !== null
+        ) {
+
+            saldo =
+                Number(
+                    result.saldo
+                ) || 0;
+
+        } else {
+
+            saldo =
+                totalMasuk -
+                totalKeluar;
+
+        }
+
+
+        setText(
+            "totalMasuk",
+            formatRupiah(
+                totalMasuk
+            )
+        );
+
+
+        setText(
+            "totalKeluar",
+            formatRupiah(
+                totalKeluar
+            )
+        );
+
+
+        setText(
+            "saldo",
+            formatRupiah(
+                saldo
+            )
+        );
+
+
+        setText(
+            "jumlahTransaksi",
+            Number(
+                result.total
+            ) || 0
+        );
+
+
+        /* =============================================
+           PAGINATION
+        ============================================= */
+
+        const resultPage =
+            Math.max(
+                1,
+                Number(
+                    result.page
+                ) || 1
+            );
+
+
+        const resultTotalPages =
+            Math.max(
+                1,
+                Number(
+                    result.totalPages
+                ) || 1
+            );
+
+
+        currentPage =
+            resultPage;
+
+
+        renderPagination(
+            resultPage,
+            resultTotalPages
+        );
+
+
+    } catch (error) {
+
+        /* =============================================
+           REQUEST DIBATALKAN
+        ============================================= */
+
+        if (
+            error.name ===
+            "AbortError"
+        ) {
+
+            return;
+
+        }
+
+
+        console.error(
+            "TRANSAKSI ERROR:",
+            error
+        );
+
+
+        /*
+         * JANGAN TAMPILKAN error.message
+         * LANGSUNG KE USER.
+         *
+         * Ini menghindari informasi internal
+         * server/API ikut tampil.
+         */
+
+        tampilkanError();
+
+
+    } finally {
+
+        sedangMemuat =
+            false;
+
+        hideLoading();
+
+    }
+
+}
+
+
+/* =========================================================
+   RENDER TABLE
+   TANPA INNERHTML UNTUK DATA API
+========================================================= */
+
+function renderTable(data) {
+
+    const tbody =
+        document.getElementById(
+            "tbodyTransaksi"
+        );
+
+
+    if (!tbody) {
+
+        console.warn(
+            "tbodyTransaksi tidak ditemukan."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * Aman karena hanya menghapus
+     * node DOM, bukan memasukkan data user.
+     */
+
+    while (
+        tbody.firstChild
+    ) {
+
+        tbody.removeChild(
+            tbody.firstChild
+        );
+
+    }
+
+
+    if (
+        !Array.isArray(data) ||
+        data.length === 0
+    ) {
+
+        const tr =
+            document.createElement(
+                "tr"
+            );
+
+
+        const td =
+            document.createElement(
+                "td"
+            );
+
+
+        td.colSpan = 7;
+
+        td.className =
+            "text-center";
+
+
+        td.textContent =
+            "Data tidak ditemukan";
+
+
+        tr.appendChild(td);
+
+        tbody.appendChild(tr);
+
+        return;
+
+    }
+
+
+    data.forEach(
+        function(item) {
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+
+            /* =========================================
+               NO
+            ========================================= */
+
+            const tdNo =
+                document.createElement(
+                    "td"
+                );
+
+
+            tdNo.textContent =
+                String(
+                    item.no ?? "-"
+                );
+
+
+            /* =========================================
+               TANGGAL
+            ========================================= */
+
+            const tdTanggal =
+                document.createElement(
+                    "td"
+                );
+
+
+            tdTanggal.textContent =
+                formatTanggal(
+                    item.tanggal
+                );
+
+
+            /* =========================================
+               JENIS
+            ========================================= */
+
+            const tdJenis =
+                document.createElement(
+                    "td"
+                );
+
+
+            const badge =
+                document.createElement(
+                    "span"
+                );
+
+
+            if (
+                item.jenis ===
+                "MASUK"
+            ) {
+
+                badge.className =
+                    "badge bg-success";
+
+                badge.textContent =
+                    "MASUK";
+
+            } else {
+
+                badge.className =
+                    "badge bg-danger";
+
+                badge.textContent =
+                    item.jenis ||
+                    "LAINNYA";
+
+            }
+
+
+            tdJenis.appendChild(
+                badge
+            );
+
+
+            /* =========================================
+               KATEGORI
+            ========================================= */
+
+            const tdKategori =
+                document.createElement(
+                    "td"
+                );
+
+
+            tdKategori.textContent =
+                item.kategori ||
+                "LAINNYA";
+
+
+            /* =========================================
+               KETERANGAN
+            ========================================= */
+
+            const tdKeterangan =
+                document.createElement(
+                    "td"
+                );
+
+
+            tdKeterangan.textContent =
+                item.keterangan ||
+                "-";
+
+
+            /* =========================================
+               NOMINAL
+            ========================================= */
+
+            const tdNominal =
+                document.createElement(
+                    "td"
+                );
+
+
+            tdNominal.className =
+                "text-end";
+
+
+            tdNominal.textContent =
+                formatRupiah(
+                    item.nominal
+                );
+
+
+            /* =========================================
+               PETUGAS
+            ========================================= */
+
+            const tdPetugas =
+                document.createElement(
+                    "td"
+                );
+
+
+            tdPetugas.textContent =
+                item.petugas ||
+                "-";
+
+
+            /* =========================================
+               APPEND
+            ========================================= */
+
+            tr.appendChild(tdNo);
+
+            tr.appendChild(tdTanggal);
+
+            tr.appendChild(tdJenis);
+
+            tr.appendChild(tdKategori);
+
+            tr.appendChild(tdKeterangan);
+
+            tr.appendChild(tdNominal);
+
+            tr.appendChild(tdPetugas);
+
+
+            tbody.appendChild(tr);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+function renderPagination(
+    page,
+    totalPages
+) {
+
+    const container =
+        document.getElementById(
+            "pagination"
+        );
+
+
+    if (!container) {
+
+        return;
+
+    }
+
+
+    /*
+     * pagination hanya berisi
+     * element yang kita buat sendiri.
+     */
+
+    while (
+        container.firstChild
+    ) {
+
+        container.removeChild(
+            container.firstChild
+        );
+
+    }
+
+
+    if (
+        totalPages <= 1
+    ) {
+
+        return;
+
+    }
+
+
+    /* =============================================
+       PREVIOUS
+    ============================================= */
+
+    const prev =
+        document.createElement(
+            "button"
+        );
+
+
+    prev.type =
+        "button";
+
+
+    prev.className =
+        "btn btn-sm btn-outline-primary me-1";
+
+
+    prev.textContent =
+        "‹ Sebelumnya";
+
+
+    prev.disabled =
+        page <= 1;
+
+
+    prev.addEventListener(
+        "click",
+        function() {
+
+            if (
+                page > 1
+            ) {
+
+                loadTransaksi(
+                    page - 1
+                );
+
+            }
+
+        }
+    );
+
+
+    container.appendChild(
+        prev
+    );
+
+
+    /* =============================================
+       INFO
+    ============================================= */
+
+    const info =
+        document.createElement(
+            "span"
+        );
+
+
+    info.className =
+        "mx-2";
+
+
+    info.textContent =
+        "Halaman " +
+        page +
+        " / " +
+        totalPages;
+
+
+    container.appendChild(
+        info
+    );
+
+
+    /* =============================================
+       NEXT
+    ============================================= */
+
+    const next =
+        document.createElement(
+            "button"
+        );
+
+
+    next.type =
+        "button";
+
+
+    next.className =
+        "btn btn-sm btn-outline-primary ms-1";
+
+
+    next.textContent =
+        "Berikutnya ›";
+
+
+    next.disabled =
+        page >= totalPages;
+
+
+    next.addEventListener(
+        "click",
+        function() {
+
+            if (
+                page <
+                totalPages
+            ) {
+
+                loadTransaksi(
+                    page + 1
+                );
+
+            }
+
+        }
+    );
+
+
+    container.appendChild(
+        next
+    );
+
+}
+
+
+/* =========================================================
+   FILTER
+========================================================= */
+
+function filterData() {
+
+    loadTransaksi(1);
+
+}
+
+
+/* =========================================================
+   RESET FILTER
+========================================================= */
+
+function resetFilter() {
+
+    const ids = [
+
+        "tanggalMulai",
+
+        "tanggalAkhir",
+
+        "filterJenis",
+
+        "filterKategori"
+
+    ];
+
+
+    ids.forEach(
+        function(id) {
+
+            const el =
+                document.getElementById(
+                    id
+                );
+
+
+            if (el) {
+
+                el.value =
+                    "";
+
+            }
+
+        }
+    );
+
+
+    loadTransaksi(1);
+
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+function tampilkanError() {
+
+    const tbody =
+        document.getElementById(
+            "tbodyTransaksi"
+        );
+
+
+    if (!tbody) {
+
+        return;
+
+    }
+
+
+    while (
+        tbody.firstChild
+    ) {
+
+        tbody.removeChild(
+            tbody.firstChild
+        );
+
+    }
+
+
+    const tr =
+        document.createElement(
+            "tr"
+        );
+
+
+    const td =
+        document.createElement(
+            "td"
+        );
+
+
+    td.colSpan = 7;
+
+    td.className =
+        "text-center text-danger";
+
+
+    /*
+     * Pesan generik.
+     * Jangan masukkan error server mentah.
+     */
+
+    td.textContent =
+        "Data transaksi tidak dapat dimuat. Silakan coba lagi.";
+
+
+    tr.appendChild(td);
+
+    tbody.appendChild(tr);
+
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
 
 function showLoading() {
 
     const el =
         document.getElementById(
-            'loadingOverlay'
+            "loadingOverlay"
         );
 
 
     if (el) {
 
         el.style.display =
-            'flex';
+            "flex";
 
     }
 
 }
 
-
-// ==========================================================
-// HIDE LOADING
-// ==========================================================
 
 function hideLoading() {
 
     const el =
         document.getElementById(
-            'loadingOverlay'
+            "loadingOverlay"
         );
 
 
     if (el) {
 
         el.style.display =
-            'none';
+            "none";
 
     }
 
 }
 
 
-// ==========================================================
-// ERROR
-// ==========================================================
-
-function showError(
-    message
-) {
-
-    console.error(
-        'TRANSAKSI ERROR:',
-        message
-    );
-
-
-    const tbody =
-        document.getElementById(
-            'tbodyTransaksi'
-        );
-
-
-    if (tbody) {
-
-        tbody.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="7"
-                    class="text-center text-danger py-4"
-                >
-
-                    Gagal memuat data.
-
-                    <br>
-
-                    <small>
-
-                        ${escapeHtml(
-                            message
-                        )}
-
-                    </small>
-
-                </td>
-
-            </tr>
-
-        `;
-
-    }
-
-}
-
-
-// ==========================================================
-// EVENT DOM READY
-// ==========================================================
+/* =========================================================
+   START
+========================================================= */
 
 document.addEventListener(
-
-    'DOMContentLoaded',
-
+    "DOMContentLoaded",
     function() {
 
         console.log(
-            '===================================='
+            "TRANSAKSI DOM READY"
         );
 
 
-        console.log(
-            'TRANSAKSI DOM READY'
-        );
+        showLoading();
 
 
-        console.log(
-            'API:',
-            API_URL
-        );
-
-
-        // ==================================================
-        // TOMBOL FILTER
-        // ==================================================
-
-        const btnTampilkan =
-            document.getElementById(
-                'btnTampilkan'
-            );
-
-
-        if (
-            btnTampilkan
-        ) {
-
-            btnTampilkan.addEventListener(
-
-                'click',
-
-                function(e) {
-
-                    e.preventDefault();
-
-                    filterData();
-
-                }
-
-            );
-
-        }
-
-
-        // ==================================================
-        // TOMBOL SEMUA DATA
-        // ==================================================
-
-        const btnSemua =
-            document.getElementById(
-                'btnSemua'
-            );
-
-
-        if (
-            btnSemua
-        ) {
-
-            btnSemua.addEventListener(
-
-                'click',
-
-                function(e) {
-
-                    e.preventDefault();
-
-                    resetFilter();
-
-                }
-
-            );
-
-        }
-
-
-        // ==================================================
-        // FILTER JENIS
-        // ==================================================
-
-        const filterJenis =
-            document.getElementById(
-                'filterJenis'
-            );
-
-
-        if (
-            filterJenis
-        ) {
-
-            filterJenis.addEventListener(
-
-                'change',
-
-                function() {
-
-                    filterData();
-
-                }
-
-            );
-
-        }
-
-
-        // ==================================================
-        // FILTER KATEGORI
-        // ==================================================
-
-        const filterKategori =
-            document.getElementById(
-                'filterKategori'
-            );
-
-
-        if (
-            filterKategori
-        ) {
-
-            filterKategori.addEventListener(
-
-                'change',
-
-                function() {
-
-                    filterData();
-
-                }
-
-            );
-
-        }
-
-
-        // ==================================================
-        // LOAD AWAL
-        // ==================================================
-
-        loadTransaksi(
-            1
-        );
+        loadTransaksi(1);
 
     }
-
 );
