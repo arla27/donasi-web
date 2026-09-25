@@ -1,7 +1,7 @@
 "use strict";
 
 /* =========================================================
-   DATA GLOBAL
+   GLOBAL
 ========================================================= */
 
 let dataKas = [];
@@ -21,7 +21,8 @@ function formatRupiah(nilai) {
         {
             style: "currency",
             currency: "IDR",
-            minimumFractionDigits: 0
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
         }
     ).format(nilai);
 
@@ -29,7 +30,7 @@ function formatRupiah(nilai) {
 
 
 /* =========================================================
-   SET TEXT - AMAN
+   SET TEXT
 ========================================================= */
 
 function setText(id, value) {
@@ -40,7 +41,9 @@ function setText(id, value) {
     if (el) {
 
         el.textContent =
-            value == null ? "" : String(value);
+            value == null
+                ? ""
+                : String(value);
 
     }
 
@@ -51,22 +54,73 @@ function setText(id, value) {
    FORMAT TANGGAL
 ========================================================= */
 
-function formatTanggal(tanggal) {
+function formatTanggal(value) {
 
-    if (!tanggal) {
+    if (!value) {
         return "-";
     }
 
-    const d =
-        parseTanggal(tanggal);
+    const str =
+        String(value).trim();
 
-    if (!d || isNaN(d.getTime())) {
-        return String(tanggal);
+
+    /* YYYY-MM-DD */
+
+    let match =
+        str.match(
+            /^(\d{4})-(\d{2})-(\d{2})$/
+        );
+
+    if (match) {
+
+        return (
+            match[3] +
+            "/" +
+            match[2] +
+            "/" +
+            match[1]
+        );
+
+    }
+
+
+    /* DD/MM/YYYY */
+
+    match =
+        str.match(
+            /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+        );
+
+    if (match) {
+
+        return (
+            String(match[1]).padStart(2, "0") +
+            "/" +
+            String(match[2]).padStart(2, "0") +
+            "/" +
+            match[3]
+        );
+
+    }
+
+
+    /* ISO DATE */
+
+    const d =
+        new Date(value);
+
+    if (
+        isNaN(d.getTime())
+    ) {
+
+        return str;
+
     }
 
     return new Intl.DateTimeFormat(
         "id-ID",
         {
+            timeZone: "Asia/Jakarta",
             day: "2-digit",
             month: "2-digit",
             year: "numeric"
@@ -77,30 +131,24 @@ function formatTanggal(tanggal) {
 
 
 /* =========================================================
-   PARSE TANGGAL
+   GET DATE VALUE
 ========================================================= */
 
-function parseTanggal(value) {
+function getDateValue(value) {
 
     if (!value) {
-        return null;
-    }
-
-    if (value instanceof Date) {
-        return value;
+        return 0;
     }
 
     const str =
         String(value).trim();
 
 
-    /* -----------------------------------------
-       YYYY-MM-DD
-    ----------------------------------------- */
+    /* YYYY-MM-DD */
 
     let match =
         str.match(
-            /^(\d{4})-(\d{1,2})-(\d{1,2})$/
+            /^(\d{4})-(\d{2})-(\d{2})/
         );
 
     if (match) {
@@ -109,14 +157,12 @@ function parseTanggal(value) {
             Number(match[1]),
             Number(match[2]) - 1,
             Number(match[3])
-        );
+        ).getTime();
 
     }
 
 
-    /* -----------------------------------------
-       DD/MM/YYYY
-    ----------------------------------------- */
+    /* DD/MM/YYYY */
 
     match =
         str.match(
@@ -129,49 +175,31 @@ function parseTanggal(value) {
             Number(match[3]),
             Number(match[2]) - 1,
             Number(match[1])
-        );
+        ).getTime();
 
     }
 
 
-    /* -----------------------------------------
-       DD-MM-YYYY
-    ----------------------------------------- */
+    /* DATE OBJECT / ISO */
 
-    match =
-        str.match(
-            /^(\d{1,2})-(\d{1,2})-(\d{4})$/
-        );
+    const d =
+        new Date(value);
 
-    if (match) {
+    if (
+        isNaN(d.getTime())
+    ) {
 
-        return new Date(
-            Number(match[3]),
-            Number(match[2]) - 1,
-            Number(match[1])
-        );
+        return 0;
 
     }
 
-
-    /* -----------------------------------------
-       ISO / DATE OBJECT STRING
-    ----------------------------------------- */
-
-    const parsed =
-        new Date(str);
-
-    if (!isNaN(parsed.getTime())) {
-        return parsed;
-    }
-
-    return null;
+    return d.getTime();
 
 }
 
 
 /* =========================================================
-   KONVERSI TANGGAL KE YYYY-MM-DD
+   DATE KE YYYY-MM-DD
 ========================================================= */
 
 function tanggalKeYYYYMMDD(value) {
@@ -184,7 +212,7 @@ function tanggalKeYYYYMMDD(value) {
         String(value).trim();
 
 
-    /* YYYY-MM-DD */
+    /* Sudah YYYY-MM-DD */
 
     if (
         /^\d{4}-\d{2}-\d{2}$/.test(str)
@@ -204,23 +232,12 @@ function tanggalKeYYYYMMDD(value) {
 
     if (match) {
 
-        const day =
-            String(match[1])
-                .padStart(2, "0");
-
-        const month =
-            String(match[2])
-                .padStart(2, "0");
-
-        const year =
-            match[3];
-
         return (
-            year +
+            match[3] +
             "-" +
-            month +
+            String(match[2]).padStart(2, "0") +
             "-" +
-            day
+            String(match[1]).padStart(2, "0")
         );
 
     }
@@ -235,57 +252,39 @@ function tanggalKeYYYYMMDD(value) {
 
     if (match) {
 
-        const day =
-            String(match[1])
-                .padStart(2, "0");
-
-        const month =
-            String(match[2])
-                .padStart(2, "0");
-
-        const year =
-            match[3];
-
         return (
-            year +
+            match[3] +
             "-" +
-            month +
+            String(match[2]).padStart(2, "0") +
             "-" +
-            day
+            String(match[1]).padStart(2, "0")
         );
 
     }
 
-
-    /* DATE / ISO */
 
     const d =
         new Date(value);
 
-    if (!isNaN(d.getTime())) {
+    if (
+        isNaN(d.getTime())
+    ) {
 
-        const year =
-            d.getFullYear();
-
-        const month =
-            String(d.getMonth() + 1)
-                .padStart(2, "0");
-
-        const day =
-            String(d.getDate())
-                .padStart(2, "0");
-
-        return (
-            year +
-            "-" +
-            month +
-            "-" +
-            day
-        );
+        return "";
 
     }
 
-    return "";
+    return (
+        d.getFullYear() +
+        "-" +
+        String(
+            d.getMonth() + 1
+        ).padStart(2, "0") +
+        "-" +
+        String(
+            d.getDate()
+        ).padStart(2, "0")
+    );
 
 }
 
@@ -303,7 +302,9 @@ function formatTanggalIndonesia(value) {
     const parts =
         String(value).split("-");
 
-    if (parts.length === 3) {
+    if (
+        parts.length === 3
+    ) {
 
         return (
             parts[2] +
@@ -349,7 +350,7 @@ function tampilLoading(status) {
 
 
 /* =========================================================
-   LOAD DATA
+   LOAD DASHBOARD
 ========================================================= */
 
 async function loadData() {
@@ -365,11 +366,25 @@ async function loadData() {
         tampilLoading(true);
 
 
+        /* =====================================
+           API DASHBOARD
+        ===================================== */
+
+        const url =
+            SHEET_URL +
+            "?action=dashboard&_=" +
+            Date.now();
+
+
+        console.log(
+            "DASHBOARD API:",
+            url
+        );
+
+
         const response =
             await fetch(
-                SHEET_URL +
-                "?action=dashboard&_=" +
-                Date.now(),
+                url,
                 {
                     method: "GET",
                     cache: "no-store"
@@ -392,10 +407,14 @@ async function loadData() {
 
 
         console.log(
-            "DASHBOARD API:",
+            "DASHBOARD RESPONSE:",
             result
         );
 
+
+        /* =====================================
+           VALIDASI API
+        ===================================== */
 
         if (
             !result ||
@@ -406,35 +425,59 @@ async function loadData() {
                 result &&
                 result.message
                     ? result.message
-                    : "API tidak mengembalikan data yang valid."
+                    : "Response API tidak valid."
             );
 
         }
 
 
         /* =====================================
-           DATA TRANSAKSI
+           AMBIL DATA TRANSAKSI
+           
+           PRIORITAS:
+           transaksiTerakhir
+           lalu data
         ===================================== */
 
         if (
-            Array.isArray(result.data)
+            Array.isArray(
+                result.transaksiTerakhir
+            )
         ) {
 
             dataKas =
-                result.data;
+                result.transaksiTerakhir.slice();
 
-        } else if (
-            Array.isArray(result.transaksiTerakhir)
+        }
+
+        else if (
+            Array.isArray(
+                result.data
+            )
         ) {
 
             dataKas =
-                result.transaksiTerakhir;
+                result.data.slice();
 
-        } else {
+        }
+
+        else {
 
             dataKas = [];
 
         }
+
+
+        console.log(
+            "DATA KAS:",
+            dataKas
+        );
+
+
+        console.log(
+            "JUMLAH DATA:",
+            dataKas.length
+        );
 
 
         /* =====================================
@@ -443,7 +486,7 @@ async function loadData() {
 
         dataKas =
             dataKas.map(
-                function (item, index) {
+                function(item, index) {
 
                     return {
 
@@ -497,16 +540,12 @@ async function loadData() {
 
 
         /* =====================================
-           SUMMARY DARI REKAP
+           KPI DARI REKAP
            
-           PENTING:
-           Backend dashboard harus mengirim:
-           
-           result.totalMasuk
-           result.totalKeluar
-           result.saldo
-           
-           yang berasal dari SHEET REKAP.
+           Backend:
+           REKAP!B3 = Total Masuk
+           REKAP!B4 = Total Keluar
+           REKAP!B5 = Saldo
         ===================================== */
 
         const totalMasuk =
@@ -528,7 +567,7 @@ async function loadData() {
 
 
         /* =====================================
-           KPI
+           TAMPILKAN KPI
         ===================================== */
 
         setText(
@@ -616,12 +655,12 @@ async function loadData() {
 
 
         /* =====================================
-           TABEL
+           KAS MASUK
         ===================================== */
 
         renderKasMasuk(
             dataKas.filter(
-                function (item) {
+                function(item) {
 
                     return (
                         item.jenis ===
@@ -633,9 +672,13 @@ async function loadData() {
         );
 
 
+        /* =====================================
+           KAS KELUAR
+        ===================================== */
+
         renderKasKeluar(
             dataKas.filter(
-                function (item) {
+                function(item) {
 
                     return (
                         item.jenis ===
@@ -672,18 +715,20 @@ async function loadData() {
         );
 
 
-    } catch (error) {
+    }
+
+    catch(error) {
 
         console.error(
             "ERROR LOAD DASHBOARD:",
             error
         );
 
-
         tampilkanError();
 
+    }
 
-    } finally {
+    finally {
 
         sedangMemuat = false;
 
@@ -695,7 +740,7 @@ async function loadData() {
 
 
 /* =========================================================
-   RENDER ERROR
+   ERROR
 ========================================================= */
 
 function tampilkanError() {
@@ -795,10 +840,13 @@ function tampilkanError() {
 
 /* =========================================================
    CREATE CELL
-   AMAN DARI HTML / SCRIPT DARI DATA API
+   AMAN
 ========================================================= */
 
-function createCell(value, className) {
+function createCell(
+    value,
+    className = ""
+) {
 
     const td =
         document.createElement("td");
@@ -821,7 +869,7 @@ function createCell(value, className) {
 
 
 /* =========================================================
-   RENDER KAS MASUK
+   KAS MASUK
 ========================================================= */
 
 function renderKasMasuk(data) {
@@ -868,7 +916,7 @@ function renderKasMasuk(data) {
 
 
     data.forEach(
-        function (item, index) {
+        function(item, index) {
 
             const tr =
                 document.createElement("tr");
@@ -923,7 +971,7 @@ function renderKasMasuk(data) {
 
 
 /* =========================================================
-   RENDER KAS KELUAR
+   KAS KELUAR
 ========================================================= */
 
 function renderKasKeluar(data) {
@@ -970,7 +1018,7 @@ function renderKasKeluar(data) {
 
 
     data.forEach(
-        function (item, index) {
+        function(item, index) {
 
             const tr =
                 document.createElement("tr");
@@ -1075,7 +1123,7 @@ function renderRekapKategori(
 
 
     data.forEach(
-        function (item, index) {
+        function(item, index) {
 
             const tr =
                 document.createElement("tr");
@@ -1098,8 +1146,7 @@ function renderRekapKategori(
 
             tr.appendChild(
                 createCell(
-                    item.transaksi ||
-                    0,
+                    item.transaksi || 0,
                     "text-center"
                 )
             );
@@ -1125,8 +1172,6 @@ function renderRekapKategori(
 
 /* =========================================================
    20 TRANSAKSI TERAKHIR
-   URUTAN:
-   TERLAMA → TERBARU
 ========================================================= */
 
 function renderTransaksiTerakhir(data) {
@@ -1136,13 +1181,34 @@ function renderTransaksiTerakhir(data) {
             "tbodyTransaksiTerakhir"
         );
 
+
+    console.log(
+        "TARGET 20 TRANSAKSI:",
+        tbody
+    );
+
+
     if (!tbody) {
+
+        console.error(
+            "ID tbodyTransaksiTerakhir TIDAK ADA DI HTML."
+        );
+
         return;
+
     }
 
 
+    /* =====================================
+       BERSIHKAN
+    ===================================== */
+
     tbody.innerHTML = "";
 
+
+    /* =====================================
+       TIDAK ADA DATA
+    ===================================== */
 
     if (
         !Array.isArray(data) ||
@@ -1172,40 +1238,53 @@ function renderTransaksiTerakhir(data) {
     }
 
 
+    console.log(
+        "DATA UNTUK 20 TRANSAKSI:",
+        data
+    );
+
+
+    /* =====================================
+       COPY DATA
+    ===================================== */
+
     let transaksi =
         data.slice();
 
 
     /* =====================================
-       TERBARU → TERLAMA
+       SORT TERBARU → TERLAMA
     ===================================== */
 
     transaksi.sort(
-        function (a, b) {
+        function(a, b) {
 
-            const dateA =
+            const tanggalA =
                 getDateValue(
                     a.tanggal
                 );
 
-            const dateB =
+            const tanggalB =
                 getDateValue(
                     b.tanggal
                 );
 
 
             if (
-                dateB !== dateA
+                tanggalB !== tanggalA
             ) {
 
-                return dateB - dateA;
+                return (
+                    tanggalB -
+                    tanggalA
+                );
 
             }
 
 
             return (
-                (Number(b.no) || 0) -
-                (Number(a.no) || 0)
+                Number(b.no || 0) -
+                Number(a.no || 0)
             );
 
         }
@@ -1224,18 +1303,30 @@ function renderTransaksiTerakhir(data) {
 
 
     /* =====================================
-       TAMPILKAN TERLAMA → TERBARU
+       URUT TERLAMA → TERBARU
     ===================================== */
 
     transaksi.reverse();
 
 
+    console.log(
+        "20 TRANSAKSI FINAL:",
+        transaksi
+    );
+
+
+    /* =====================================
+       RENDER
+    ===================================== */
+
     transaksi.forEach(
-        function (item) {
+        function(item) {
 
             const tr =
                 document.createElement("tr");
 
+
+            /* NO */
 
             tr.appendChild(
                 createCell(
@@ -1243,6 +1334,8 @@ function renderTransaksiTerakhir(data) {
                 )
             );
 
+
+            /* TANGGAL */
 
             tr.appendChild(
                 createCell(
@@ -1263,20 +1356,26 @@ function renderTransaksiTerakhir(data) {
                 document.createElement("span");
 
 
+            const jenis =
+                String(
+                    item.jenis || ""
+                ).toUpperCase();
+
+
             badge.textContent =
-                item.jenis || "";
+                jenis;
 
 
             if (
-                String(item.jenis)
-                    .toUpperCase() ===
-                "MASUK"
+                jenis === "MASUK"
             ) {
 
                 badge.className =
                     "badge bg-success";
 
-            } else {
+            }
+
+            else {
 
                 badge.className =
                     "badge bg-danger";
@@ -1294,12 +1393,16 @@ function renderTransaksiTerakhir(data) {
             );
 
 
+            /* KATEGORI */
+
             tr.appendChild(
                 createCell(
                     item.kategori
                 )
             );
 
+
+            /* KETERANGAN */
 
             tr.appendChild(
                 createCell(
@@ -1308,15 +1411,19 @@ function renderTransaksiTerakhir(data) {
             );
 
 
+            /* NOMINAL */
+
             tr.appendChild(
                 createCell(
                     formatRupiah(
                         item.nominal
                     ),
-                    "text-end"
+                    "text-end fw-bold"
                 )
             );
 
+
+            /* PETUGAS */
 
             tr.appendChild(
                 createCell(
@@ -1330,60 +1437,6 @@ function renderTransaksiTerakhir(data) {
 
         }
     );
-
-}
-
-
-/* =========================================================
-   DATE VALUE UNTUK SORTING
-========================================================= */
-
-function getDateValue(value) {
-
-    if (!value) {
-        return 0;
-    }
-
-
-    const str =
-        String(value).trim();
-
-
-    /* YYYY-MM-DD */
-
-    const match =
-        str.match(
-            /^(\d{4})-(\d{2})-(\d{2})/
-        );
-
-
-    if (match) {
-
-        return new Date(
-            Number(match[1]),
-            Number(match[2]) - 1,
-            Number(match[3])
-        ).getTime();
-
-    }
-
-
-    const d =
-        new Date(value);
-
-
-    if (
-        isNaN(
-            d.getTime()
-        )
-    ) {
-
-        return 0;
-
-    }
-
-
-    return d.getTime();
 
 }
 
@@ -1417,7 +1470,10 @@ function filterPeriode() {
             : "";
 
 
-    if (!mulai || !akhir) {
+    if (
+        !mulai ||
+        !akhir
+    ) {
 
         alert(
             "Silakan pilih tanggal mulai dan tanggal akhir."
@@ -1428,7 +1484,9 @@ function filterPeriode() {
     }
 
 
-    if (mulai > akhir) {
+    if (
+        mulai > akhir
+    ) {
 
         alert(
             "Tanggal mulai tidak boleh lebih besar dari tanggal akhir."
@@ -1441,27 +1499,25 @@ function filterPeriode() {
 
     const hasil =
         dataKas.filter(
-            function (item) {
+            function(item) {
 
-                const tanggalItem =
+                const tanggal =
                     tanggalKeYYYYMMDD(
                         item.tanggal
                     );
 
-
-                if (!tanggalItem) {
-                    return false;
-                }
-
-
                 return (
-                    tanggalItem >= mulai &&
-                    tanggalItem <= akhir
+                    tanggal >= mulai &&
+                    tanggal <= akhir
                 );
 
             }
         );
 
+
+    /* =====================================
+       PERIODE
+    ===================================== */
 
     setText(
         "periode",
@@ -1476,28 +1532,36 @@ function filterPeriode() {
 
 
     /* =====================================
-       FILTER TABLE
+       TABLE MASUK
     ===================================== */
 
     renderKasMasuk(
         hasil.filter(
-            function (item) {
+            function(item) {
+
                 return (
                     item.jenis ===
                     "MASUK"
                 );
+
             }
         )
     );
 
 
+    /* =====================================
+       TABLE KELUAR
+    ===================================== */
+
     renderKasKeluar(
         hasil.filter(
-            function (item) {
+            function(item) {
+
                 return (
                     item.jenis ===
                     "KELUAR"
                 );
+
             }
         )
     );
@@ -1505,86 +1569,80 @@ function filterPeriode() {
 
     /* =====================================
        KPI FILTER
-       
-       KPI periode menggunakan data hasil
-       filter.
     ===================================== */
 
-    const masuk =
-        hasil.reduce(
-            function (total, item) {
-
-                if (
-                    item.jenis ===
-                    "MASUK"
-                ) {
-
-                    return (
-                        total +
-                        Number(
-                            item.nominal
-                        ) || 0
-                    );
-
-                }
-
-                return total;
-
-            },
-            0
-        );
+    let masuk = 0;
+    let keluar = 0;
 
 
-    const keluar =
-        hasil.reduce(
-            function (total, item) {
+    hasil.forEach(
+        function(item) {
 
-                if (
-                    item.jenis ===
-                    "KELUAR"
-                ) {
+            if (
+                item.jenis ===
+                "MASUK"
+            ) {
 
-                    return (
-                        total +
-                        Number(
-                            item.nominal
-                        ) || 0
-                    );
+                masuk +=
+                    Number(
+                        item.nominal
+                    ) || 0;
 
-                }
-
-                return total;
-
-            },
-            0
-        );
+            }
 
 
-    const saldo =
-        masuk - keluar;
+            if (
+                item.jenis ===
+                "KELUAR"
+            ) {
+
+                keluar +=
+                    Number(
+                        item.nominal
+                    ) || 0;
+
+            }
+
+        }
+    );
 
 
     setText(
         "totalMasuk",
-        formatRupiah(masuk)
+        formatRupiah(
+            masuk
+        )
     );
 
 
     setText(
         "totalKeluar",
-        formatRupiah(keluar)
+        formatRupiah(
+            keluar
+        )
     );
 
 
     setText(
         "saldo",
-        formatRupiah(saldo)
+        formatRupiah(
+            masuk - keluar
+        )
     );
 
 
     setText(
         "jumlahTransaksi",
         hasil.length
+    );
+
+
+    /* =====================================
+       20 TRANSAKSI HASIL FILTER
+    ===================================== */
+
+    renderTransaksiTerakhir(
+        hasil
     );
 
 }
@@ -1624,10 +1682,7 @@ function tampilkanSemuaData() {
 
 
     /* =====================================
-       KEMBALIKAN KPI DARI REKAP
-       
-       Karena data dashboard asli disimpan
-       dari response API.
+       KEMBALIKAN DATA DARI SERVER
     ===================================== */
 
     loadData();
@@ -1636,13 +1691,12 @@ function tampilkanSemuaData() {
 
 
 /* =========================================================
-   EVENT DOM READY
+   DOM READY
 ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
-    function () {
-
+    function() {
 
         console.log(
             "DOM READY"
@@ -1650,18 +1704,12 @@ document.addEventListener(
 
 
         /* =====================================
-           BUTTON FILTER
+           BUTTON TAMPILKAN
         ===================================== */
 
         const btnTampilkan =
             document.getElementById(
                 "btnTampilkan"
-            );
-
-
-        const btnSemua =
-            document.getElementById(
-                "btnSemua"
             );
 
 
@@ -1673,6 +1721,16 @@ document.addEventListener(
             );
 
         }
+
+
+        /* =====================================
+           BUTTON SEMUA DATA
+        ===================================== */
+
+        const btnSemua =
+            document.getElementById(
+                "btnSemua"
+            );
 
 
         if (btnSemua) {
@@ -1697,7 +1755,7 @@ document.addEventListener(
         ===================================== */
 
         setInterval(
-            function () {
+            function() {
 
                 loadData();
 
