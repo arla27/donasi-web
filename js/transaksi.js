@@ -9,16 +9,14 @@ const API_URL = SHEET_URL;
 
 
 /* =========================================================
-   STATE
+   PAGINATION
 ========================================================= */
 
 let currentPage = 1;
 
-const LIMIT = 50;
+const LIMIT = 20;
 
 let sedangMemuat = false;
-
-let controllerRequest = null;
 
 
 /* =========================================================
@@ -26,9 +24,6 @@ let controllerRequest = null;
 ========================================================= */
 
 function formatRupiah(value) {
-
-    const number =
-        Number(value) || 0;
 
     return new Intl.NumberFormat(
         "id-ID",
@@ -38,91 +33,15 @@ function formatRupiah(value) {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }
-    ).format(number);
-
-}
-
-
-/* =========================================================
-   PARSE TANGGAL
-========================================================= */
-
-function parseTanggal(value) {
-
-    if (!value) {
-        return null;
-    }
-
-
-    const str =
-        String(value).trim();
-
-
-    /* ---------------------------------------------
-       YYYY-MM-DD
-    --------------------------------------------- */
-
-    let match =
-        str.match(
-            /^(\d{4})-(\d{2})-(\d{2})$/
-        );
-
-
-    if (match) {
-
-        return new Date(
-            Number(match[1]),
-            Number(match[2]) - 1,
-            Number(match[3])
-        );
-
-    }
-
-
-    /* ---------------------------------------------
-       DD/MM/YYYY
-    --------------------------------------------- */
-
-    match =
-        str.match(
-            /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
-        );
-
-
-    if (match) {
-
-        return new Date(
-            Number(match[3]),
-            Number(match[2]) - 1,
-            Number(match[1])
-        );
-
-    }
-
-
-    /* ---------------------------------------------
-       ISO / DATE
-    --------------------------------------------- */
-
-    const d =
-        new Date(str);
-
-
-    if (!isNaN(d.getTime())) {
-
-        return d;
-
-    }
-
-
-    return null;
+    ).format(
+        Number(value) || 0
+    );
 
 }
 
 
 /* =========================================================
    FORMAT TANGGAL
-   HASIL DD/MM/YYYY
 ========================================================= */
 
 function formatTanggal(value) {
@@ -131,12 +50,59 @@ function formatTanggal(value) {
         return "-";
     }
 
+    const str =
+        String(value).trim();
+
+
+    /* YYYY-MM-DD */
+
+    let match =
+        str.match(
+            /^(\d{4})-(\d{2})-(\d{2})$/
+        );
+
+    if (match) {
+
+        return (
+            match[3] +
+            "/" +
+            match[2] +
+            "/" +
+            match[1]
+        );
+
+    }
+
+
+    /* DD/MM/YYYY */
+
+    match =
+        str.match(
+            /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+        );
+
+    if (match) {
+
+        return (
+            String(match[1]).padStart(2, "0") +
+            "/" +
+            String(match[2]).padStart(2, "0") +
+            "/" +
+            match[3]
+        );
+
+    }
+
 
     const d =
-        parseTanggal(value);
+        new Date(str);
 
 
-    if (!d || isNaN(d.getTime())) {
+    if (
+        isNaN(
+            d.getTime()
+        )
+    ) {
 
         return "-";
 
@@ -165,7 +131,6 @@ function setText(id, value) {
     const el =
         document.getElementById(id);
 
-
     if (el) {
 
         el.textContent =
@@ -177,143 +142,13 @@ function setText(id, value) {
 
 
 /* =========================================================
-   NORMALISASI TRANSAKSI
-========================================================= */
-
-function normalisasiTransaksi(data) {
-
-    if (!Array.isArray(data)) {
-
-        return [];
-
-    }
-
-
-    return data.map(
-        function(item, index) {
-
-            const jenis =
-                String(
-                    item?.jenis ?? ""
-                )
-                .trim()
-                .toUpperCase();
-
-
-            let kategori =
-                String(
-                    item?.kategori ?? ""
-                )
-                .trim()
-                .toUpperCase();
-
-
-            if (!kategori) {
-
-                kategori =
-                    "LAINNYA";
-
-            }
-
-
-            return {
-
-                no:
-                    item?.no ??
-                    index + 1,
-
-                tanggal:
-                    String(
-                        item?.tanggal ?? ""
-                    ),
-
-                jenis:
-                    jenis === "MASUK"
-                        ? "MASUK"
-                        : jenis === "KELUAR"
-                            ? "KELUAR"
-                            : jenis,
-
-                kategori:
-                    kategori,
-
-                keterangan:
-                    String(
-                        item?.keterangan ?? ""
-                    ),
-
-                nominal:
-                    Number(
-                        item?.nominal
-                    ) || 0,
-
-                petugas:
-                    String(
-                        item?.petugas ?? ""
-                    )
-
-            };
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   VALIDASI RESPONSE API
-========================================================= */
-
-function validasiResponse(result) {
-
-    if (!result) {
-
-        throw new Error(
-            "Response server kosong."
-        );
-
-    }
-
-
-    if (
-        result.success !== true
-    ) {
-
-        throw new Error(
-            "Data transaksi tidak dapat dimuat."
-        );
-
-    }
-
-
-    if (
-        !Array.isArray(result.data)
-    ) {
-
-        throw new Error(
-            "Format data transaksi tidak valid."
-        );
-
-    }
-
-
-    return result;
-
-}
-
-
-/* =========================================================
    LOAD TRANSAKSI
 ========================================================= */
 
-async function loadTransaksi(
-    page = 1
-) {
+async function loadTransaksi(page) {
 
     if (sedangMemuat) {
-
         return;
-
     }
 
 
@@ -322,83 +157,57 @@ async function loadTransaksi(
 
     try {
 
-        /* =============================================
-           VALIDASI PAGE
-        ============================================= */
+        /* ---------------------------------------------
+           PAGE
+        --------------------------------------------- */
 
         page =
-            Math.max(
-                1,
-                parseInt(page, 10) || 1
-            );
+            parseInt(
+                page,
+                10
+            ) || 1;
+
+
+        if (page < 1) {
+            page = 1;
+        }
 
 
         currentPage =
             page;
 
 
-        /* =============================================
-           BATALKAN REQUEST SEBELUMNYA
-        ============================================= */
-
-        if (controllerRequest) {
-
-            controllerRequest.abort();
-
-        }
-
-
-        controllerRequest =
-            new AbortController();
-
-
-        /* =============================================
-           AMBIL FILTER
-        ============================================= */
-
-        const mulaiEl =
-            document.getElementById(
-                "tanggalMulai"
-            );
-
-
-        const akhirEl =
-            document.getElementById(
-                "tanggalAkhir"
-            );
-
-
-        const jenisEl =
-            document.getElementById(
-                "filterJenis"
-            );
-
-
-        const kategoriEl =
-            document.getElementById(
-                "filterKategori"
-            );
-
+        /* ---------------------------------------------
+           FILTER
+        --------------------------------------------- */
 
         const mulai =
-            mulaiEl?.value || "";
+            document.getElementById(
+                "tanggalMulai"
+            )?.value || "";
 
 
         const akhir =
-            akhirEl?.value || "";
+            document.getElementById(
+                "tanggalAkhir"
+            )?.value || "";
 
 
         const jenis =
-            jenisEl?.value || "";
+            document.getElementById(
+                "filterJenis"
+            )?.value || "";
 
 
         const kategori =
-            kategoriEl?.value || "";
+            document.getElementById(
+                "filterKategori"
+            )?.value || "";
 
 
-        /* =============================================
+        /* ---------------------------------------------
            VALIDASI TANGGAL
-        ============================================= */
+        --------------------------------------------- */
 
         if (
             mulai &&
@@ -415,9 +224,9 @@ async function loadTransaksi(
         }
 
 
-        /* =============================================
-           BUAT PARAMETER
-        ============================================= */
+        /* ---------------------------------------------
+           PARAMETER API
+        --------------------------------------------- */
 
         const params =
             new URLSearchParams();
@@ -434,11 +243,6 @@ async function loadTransaksi(
             String(page)
         );
 
-
-        /*
-         * LIMIT TETAP DIKONTROL DI FRONTEND.
-         * BACKEND JUGA WAJIB MEMBATASINYA.
-         */
 
         params.set(
             "limit",
@@ -490,15 +294,11 @@ async function loadTransaksi(
         }
 
 
-        /*
-         * CACHE BUSTER
-         */
+        /* cache bust */
 
         params.set(
             "_",
-            String(
-                Date.now()
-            )
+            Date.now()
         );
 
 
@@ -509,25 +309,59 @@ async function loadTransaksi(
 
 
         console.log(
-            "TRANSAKSI API REQUEST"
+            "================================"
+        );
+
+        console.log(
+            "TRANSAKSI REQUEST"
+        );
+
+        console.log(
+            "PAGE:",
+            page
+        );
+
+        console.log(
+            "LIMIT:",
+            LIMIT
+        );
+
+        console.log(
+            "MULAI:",
+            mulai
+        );
+
+        console.log(
+            "AKHIR:",
+            akhir
+        );
+
+        console.log(
+            "JENIS:",
+            jenis
+        );
+
+        console.log(
+            "KATEGORI:",
+            kategori
+        );
+
+        console.log(
+            "URL:",
+            url
         );
 
 
-        /* =============================================
+        /* ---------------------------------------------
            REQUEST
-        ============================================= */
+        --------------------------------------------- */
 
         const response =
             await fetch(
                 url,
                 {
                     method: "GET",
-
                     cache: "no-store",
-
-                    signal:
-                        controllerRequest.signal,
-
                     headers: {
                         "Accept":
                             "application/json"
@@ -539,31 +373,15 @@ async function loadTransaksi(
         if (!response.ok) {
 
             throw new Error(
-                "Server tidak dapat dihubungi."
+                "HTTP " +
+                response.status
             );
 
         }
 
 
-        /* =============================================
-           JSON
-        ============================================= */
-
-        let result;
-
-
-        try {
-
-            result =
-                await response.json();
-
-        } catch (jsonError) {
-
-            throw new Error(
-                "Response server bukan JSON yang valid."
-            );
-
-        }
+        const result =
+            await response.json();
 
 
         console.log(
@@ -572,37 +390,47 @@ async function loadTransaksi(
         );
 
 
-        /* =============================================
+        /* ---------------------------------------------
            VALIDASI
-        ============================================= */
+        --------------------------------------------- */
 
-        validasiResponse(
-            result
-        );
+        if (
+            !result ||
+            result.success !== true
+        ) {
 
-
-        /* =============================================
-           NORMALISASI
-        ============================================= */
-
-        const data =
-            normalisasiTransaksi(
-                result.data
+            throw new Error(
+                result?.message ||
+                "API transaksi gagal."
             );
 
+        }
 
-        /* =============================================
-           RENDER
-        ============================================= */
+
+        /* ---------------------------------------------
+           DATA
+        --------------------------------------------- */
+
+        const data =
+            Array.isArray(
+                result.data
+            )
+                ? result.data
+                : [];
+
+
+        /* ---------------------------------------------
+           RENDER TABLE
+        --------------------------------------------- */
 
         renderTable(
             data
         );
 
 
-        /* =============================================
+        /* ---------------------------------------------
            KPI
-        ============================================= */
+        --------------------------------------------- */
 
         const totalMasuk =
             Number(
@@ -616,26 +444,10 @@ async function loadTransaksi(
             ) || 0;
 
 
-        let saldo;
-
-
-        if (
-            result.saldo !== undefined &&
-            result.saldo !== null
-        ) {
-
-            saldo =
-                Number(
-                    result.saldo
-                ) || 0;
-
-        } else {
-
-            saldo =
-                totalMasuk -
-                totalKeluar;
-
-        }
+        const saldo =
+            result.saldo !== undefined
+                ? Number(result.saldo) || 0
+                : totalMasuk - totalKeluar;
 
 
         setText(
@@ -670,26 +482,20 @@ async function loadTransaksi(
         );
 
 
-        /* =============================================
+        /* ---------------------------------------------
            PAGINATION
-        ============================================= */
+        --------------------------------------------- */
 
         const resultPage =
-            Math.max(
-                1,
-                Number(
-                    result.page
-                ) || 1
-            );
+            Number(
+                result.page
+            ) || 1;
 
 
-        const resultTotalPages =
-            Math.max(
-                1,
-                Number(
-                    result.totalPages
-                ) || 1
-            );
+        const totalPages =
+            Number(
+                result.totalPages
+            ) || 1;
 
 
         currentPage =
@@ -698,25 +504,31 @@ async function loadTransaksi(
 
         renderPagination(
             resultPage,
-            resultTotalPages
+            totalPages
+        );
+
+
+        console.log(
+            "PAGE RESULT:",
+            resultPage
+        );
+
+        console.log(
+            "TOTAL DATA:",
+            result.total
+        );
+
+        console.log(
+            "TOTAL PAGE:",
+            totalPages
+        );
+
+        console.log(
+            "================================"
         );
 
 
     } catch (error) {
-
-        /* =============================================
-           REQUEST DIBATALKAN
-        ============================================= */
-
-        if (
-            error.name ===
-            "AbortError"
-        ) {
-
-            return;
-
-        }
-
 
         console.error(
             "TRANSAKSI ERROR:",
@@ -724,16 +536,7 @@ async function loadTransaksi(
         );
 
 
-        /*
-         * JANGAN TAMPILKAN error.message
-         * LANGSUNG KE USER.
-         *
-         * Ini menghindari informasi internal
-         * server/API ikut tampil.
-         */
-
         tampilkanError();
-
 
     } finally {
 
@@ -749,7 +552,6 @@ async function loadTransaksi(
 
 /* =========================================================
    RENDER TABLE
-   TANPA INNERHTML UNTUK DATA API
 ========================================================= */
 
 function renderTable(data) {
@@ -761,30 +563,11 @@ function renderTable(data) {
 
 
     if (!tbody) {
-
-        console.warn(
-            "tbodyTransaksi tidak ditemukan."
-        );
-
         return;
-
     }
 
 
-    /*
-     * Aman karena hanya menghapus
-     * node DOM, bukan memasukkan data user.
-     */
-
-    while (
-        tbody.firstChild
-    ) {
-
-        tbody.removeChild(
-            tbody.firstChild
-        );
-
-    }
+    tbody.innerHTML = "";
 
 
     if (
@@ -807,7 +590,7 @@ function renderTable(data) {
         td.colSpan = 7;
 
         td.className =
-            "text-center";
+            "text-center text-muted py-4";
 
 
         td.textContent =
@@ -832,31 +615,23 @@ function renderTable(data) {
                 );
 
 
-            /* =========================================
-               NO
-            ========================================= */
+            /* NO */
 
             const tdNo =
                 document.createElement(
                     "td"
                 );
 
-
             tdNo.textContent =
-                String(
-                    item.no ?? "-"
-                );
+                item.no ?? "-";
 
 
-            /* =========================================
-               TANGGAL
-            ========================================= */
+            /* TANGGAL */
 
             const tdTanggal =
                 document.createElement(
                     "td"
                 );
-
 
             tdTanggal.textContent =
                 formatTanggal(
@@ -864,9 +639,7 @@ function renderTable(data) {
                 );
 
 
-            /* =========================================
-               JENIS
-            ========================================= */
+            /* JENIS */
 
             const tdJenis =
                 document.createElement(
@@ -881,8 +654,9 @@ function renderTable(data) {
 
 
             if (
-                item.jenis ===
-                "MASUK"
+                String(
+                    item.jenis || ""
+                ).toUpperCase() === "MASUK"
             ) {
 
                 badge.className =
@@ -897,8 +671,7 @@ function renderTable(data) {
                     "badge bg-danger";
 
                 badge.textContent =
-                    item.jenis ||
-                    "LAINNYA";
+                    "KELUAR";
 
             }
 
@@ -908,45 +681,36 @@ function renderTable(data) {
             );
 
 
-            /* =========================================
-               KATEGORI
-            ========================================= */
+            /* KATEGORI */
 
             const tdKategori =
                 document.createElement(
                     "td"
                 );
 
-
             tdKategori.textContent =
                 item.kategori ||
                 "LAINNYA";
 
 
-            /* =========================================
-               KETERANGAN
-            ========================================= */
+            /* KETERANGAN */
 
             const tdKeterangan =
                 document.createElement(
                     "td"
                 );
 
-
             tdKeterangan.textContent =
                 item.keterangan ||
                 "-";
 
 
-            /* =========================================
-               NOMINAL
-            ========================================= */
+            /* NOMINAL */
 
             const tdNominal =
                 document.createElement(
                     "td"
                 );
-
 
             tdNominal.className =
                 "text-end";
@@ -958,24 +722,17 @@ function renderTable(data) {
                 );
 
 
-            /* =========================================
-               PETUGAS
-            ========================================= */
+            /* PETUGAS */
 
             const tdPetugas =
                 document.createElement(
                     "td"
                 );
 
-
             tdPetugas.textContent =
                 item.petugas ||
                 "-";
 
-
-            /* =========================================
-               APPEND
-            ========================================= */
 
             tr.appendChild(tdNo);
 
@@ -1017,25 +774,16 @@ function renderPagination(
 
     if (!container) {
 
+        console.warn(
+            "Element #pagination tidak ditemukan."
+        );
+
         return;
 
     }
 
 
-    /*
-     * pagination hanya berisi
-     * element yang kita buat sendiri.
-     */
-
-    while (
-        container.firstChild
-    ) {
-
-        container.removeChild(
-            container.firstChild
-        );
-
-    }
+    container.innerHTML = "";
 
 
     if (
@@ -1045,6 +793,57 @@ function renderPagination(
         return;
 
     }
+
+
+    /* =============================================
+       FIRST
+    ============================================= */
+
+    const first =
+        document.createElement(
+            "button"
+        );
+
+
+    first.type =
+        "button";
+
+
+    first.className =
+        "btn btn-sm btn-outline-primary me-1";
+
+
+    first.textContent =
+        "«";
+
+
+    first.title =
+        "Halaman pertama";
+
+
+    first.disabled =
+        page <= 1;
+
+
+    first.addEventListener(
+        "click",
+        function() {
+
+            if (
+                page > 1
+            ) {
+
+                loadTransaksi(1);
+
+            }
+
+        }
+    );
+
+
+    container.appendChild(
+        first
+    );
 
 
     /* =============================================
@@ -1066,7 +865,11 @@ function renderPagination(
 
 
     prev.textContent =
-        "‹ Sebelumnya";
+        "‹";
+
+
+    prev.title =
+        "Sebelumnya";
 
 
     prev.disabled =
@@ -1097,29 +900,71 @@ function renderPagination(
 
 
     /* =============================================
-       INFO
+       NOMOR HALAMAN
     ============================================= */
 
-    const info =
-        document.createElement(
-            "span"
+    const start =
+        Math.max(
+            1,
+            page - 2
         );
 
 
-    info.className =
-        "mx-2";
+    const end =
+        Math.min(
+            totalPages,
+            page + 2
+        );
 
 
-    info.textContent =
-        "Halaman " +
-        page +
-        " / " +
-        totalPages;
+    for (
+        let i = start;
+        i <= end;
+        i++
+    ) {
+
+        const btn =
+            document.createElement(
+                "button"
+            );
 
 
-    container.appendChild(
-        info
-    );
+        btn.type =
+            "button";
+
+
+        btn.className =
+            "btn btn-sm me-1 " +
+            (
+                i === page
+                    ? "btn-primary"
+                    : "btn-outline-primary"
+            );
+
+
+        btn.textContent =
+            String(i);
+
+
+        btn.disabled =
+            i === page;
+
+
+        btn.addEventListener(
+            "click",
+            function() {
+
+                loadTransaksi(i);
+
+            }
+        );
+
+
+        container.appendChild(
+            btn
+        );
+
+    }
 
 
     /* =============================================
@@ -1137,11 +982,15 @@ function renderPagination(
 
 
     next.className =
-        "btn btn-sm btn-outline-primary ms-1";
+        "btn btn-sm btn-outline-primary me-1";
 
 
     next.textContent =
-        "Berikutnya ›";
+        "›";
+
+
+    next.title =
+        "Berikutnya";
 
 
     next.disabled =
@@ -1169,6 +1018,60 @@ function renderPagination(
 
     container.appendChild(
         next
+    );
+
+
+    /* =============================================
+       LAST
+    ============================================= */
+
+    const last =
+        document.createElement(
+            "button"
+        );
+
+
+    last.type =
+        "button";
+
+
+    last.className =
+        "btn btn-sm btn-outline-primary";
+
+
+    last.textContent =
+        "»";
+
+
+    last.title =
+        "Halaman terakhir";
+
+
+    last.disabled =
+        page >= totalPages;
+
+
+    last.addEventListener(
+        "click",
+        function() {
+
+            if (
+                page <
+                totalPages
+            ) {
+
+                loadTransaksi(
+                    totalPages
+                );
+
+            }
+
+        }
+    );
+
+
+    container.appendChild(
+        last
     );
 
 }
@@ -1230,70 +1133,6 @@ function resetFilter() {
 
 
 /* =========================================================
-   ERROR
-========================================================= */
-
-function tampilkanError() {
-
-    const tbody =
-        document.getElementById(
-            "tbodyTransaksi"
-        );
-
-
-    if (!tbody) {
-
-        return;
-
-    }
-
-
-    while (
-        tbody.firstChild
-    ) {
-
-        tbody.removeChild(
-            tbody.firstChild
-        );
-
-    }
-
-
-    const tr =
-        document.createElement(
-            "tr"
-        );
-
-
-    const td =
-        document.createElement(
-            "td"
-        );
-
-
-    td.colSpan = 7;
-
-    td.className =
-        "text-center text-danger";
-
-
-    /*
-     * Pesan generik.
-     * Jangan masukkan error server mentah.
-     */
-
-    td.textContent =
-        "Data transaksi tidak dapat dimuat. Silakan coba lagi.";
-
-
-    tr.appendChild(td);
-
-    tbody.appendChild(tr);
-
-}
-
-
-/* =========================================================
    LOADING
 ========================================================= */
 
@@ -1329,6 +1168,55 @@ function hideLoading() {
             "none";
 
     }
+
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+function tampilkanError() {
+
+    const tbody =
+        document.getElementById(
+            "tbodyTransaksi"
+        );
+
+
+    if (!tbody) {
+        return;
+    }
+
+
+    tbody.innerHTML = "";
+
+
+    const tr =
+        document.createElement(
+            "tr"
+        );
+
+
+    const td =
+        document.createElement(
+            "td"
+        );
+
+
+    td.colSpan = 7;
+
+    td.className =
+        "text-center text-danger py-4";
+
+
+    td.textContent =
+        "Data transaksi tidak dapat dimuat. Silakan coba lagi.";
+
+
+    tr.appendChild(td);
+
+    tbody.appendChild(tr);
 
 }
 
