@@ -26,633 +26,279 @@
 
 
     <!-- =====================================================
-         FONT AWESOME
+         STYLE
     ====================================================== -->
 
     <link
         rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
-
-
-    <!-- =====================================================
-         CSS
-    ====================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="css/style.css"
+        href="css/style.css?v=20260925"
     >
 
 
     <style>
 
-        /* ==================================================
-           GLOBAL
-        ================================================== */
-
         body {
-
-            background:
-                #f5f7fb;
-
-            color:
-                #212529;
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-
+            background: #f5f7f9;
         }
 
 
-        /* ==================================================
-           NAVBAR
-        ================================================== */
+        /* =================================================
+           TOPBAR
+        ================================================= */
 
-        .navbar-dkm {
-
-            background:
-                #198754;
-
-            box-shadow:
-                0 2px 10px
-                rgba(0,0,0,.10);
-
+        .topbar {
+            height: 6px;
+            background: #198754;
         }
 
 
-        .navbar-dkm
-        .navbar-brand {
+        /* =================================================
+           CONTAINER
+        ================================================= */
 
-            color:
-                #ffffff;
-
-            font-weight:
-                700;
-
+        .page-container {
+            max-width: 1400px;
+            margin: auto;
         }
 
 
-        .navbar-dkm
-        .nav-link {
+        /* =================================================
+           HEADER
+        ================================================= */
 
-            color:
-                rgba(255,255,255,.90);
-
+        .hero {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 25px 30px;
+            box-shadow: 0 4px 18px rgba(0,0,0,.06);
         }
 
 
-        .navbar-dkm
-        .nav-link:hover {
-
-            color:
-                #ffffff;
-
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #198754;
         }
 
 
-        /* ==================================================
-           PAGE HEADER
-        ================================================== */
-
-        .page-header {
-
-            background:
-                #ffffff;
-
-            border-radius:
-                12px;
-
-            padding:
-                20px;
-
-            margin-bottom:
-                20px;
-
-            box-shadow:
-                0 2px 10px
-                rgba(0,0,0,.05);
-
+        .hero h1 {
+            margin: 5px 0;
+            font-size: 28px;
+            font-weight: 800;
         }
 
 
-        .page-title {
-
-            margin:
-                0;
-
-            font-size:
-                24px;
-
-            font-weight:
-                700;
-
+        .hero p {
+            margin: 0;
+            color: #6c757d;
         }
 
 
-        .page-subtitle {
+        /* =================================================
+           CARD
+        ================================================= */
 
-            color:
-                #6c757d;
-
-            margin-top:
-                5px;
-
+        .section-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 18px rgba(0,0,0,.06);
+            overflow: hidden;
         }
 
 
-        /* ==================================================
+        /* =================================================
            KPI
-        ================================================== */
+        ================================================= */
 
-        .kpi-card {
-
-            background:
-                #ffffff;
-
-            border:
-                0;
-
-            border-radius:
-                12px;
-
-            box-shadow:
-                0 2px 10px
-                rgba(0,0,0,.06);
-
-            height:
-                100%;
-
+        .kpi {
+            border: 0;
+            border-radius: 16px;
+            padding: 22px;
+            height: 100%;
         }
 
 
-        .kpi-card
-        .card-body {
-
-            padding:
-                20px;
-
+        .kpi small {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
         }
 
 
-        .kpi-icon {
-
-            width:
-                48px;
-
-            height:
-                48px;
-
-            border-radius:
-                10px;
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                center;
-
-            font-size:
-                20px;
-
-            margin-bottom:
-                12px;
-
+        .kpi strong {
+            display: block;
+            font-size: 24px;
+            font-weight: 800;
         }
 
 
-        .kpi-title {
-
-            color:
-                #6c757d;
-
-            font-size:
-                14px;
-
-            margin-bottom:
-                5px;
-
+        .kpi.saldo {
+            background: #e9f7ef;
+            color: #146c43;
         }
 
 
-        .kpi-value {
-
-            font-size:
-                22px;
-
-            font-weight:
-                700;
-
-            margin:
-                0;
-
+        .kpi.masuk {
+            background: #eaf7ee;
+            color: #198754;
         }
 
 
-        .kpi-masuk
-        .kpi-icon {
-
-            background:
-                #d1e7dd;
-
-            color:
-                #198754;
-
+        .kpi.keluar {
+            background: #fdecec;
+            color: #b02a37;
         }
 
 
-        .kpi-keluar
-        .kpi-icon {
-
-            background:
-                #f8d7da;
-
-            color:
-                #dc3545;
-
-        }
-
-
-        .kpi-saldo
-        .kpi-icon {
-
-            background:
-                #cff4fc;
-
-            color:
-                #0dcaf0;
-
-        }
-
-
-        .kpi-transaksi
-        .kpi-icon {
-
-            background:
-                #fff3cd;
-
-            color:
-                #997404;
-
-        }
-
-
-        /* ==================================================
-           FILTER CARD
-        ================================================== */
+        /* =================================================
+           FILTER
+        ================================================= */
 
         .filter-card {
-
-            background:
-                #ffffff;
-
-            border:
-                0;
-
-            border-radius:
-                12px;
-
-            box-shadow:
-                0 2px 10px
-                rgba(0,0,0,.06);
-
+            padding: 24px;
         }
 
 
-        .filter-card
-        .card-header {
-
-            background:
-                #ffffff;
-
-            border-bottom:
-                1px solid #eeeeee;
-
-            font-weight:
-                700;
-
-            padding:
-                15px 20px;
-
-        }
-
-
-        .filter-card
-        .card-body {
-
-            padding:
-                20px;
-
+        .filter-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 20px;
         }
 
 
         .form-label {
-
-            font-weight:
-                600;
-
-            font-size:
-                14px;
-
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
         }
 
 
-        /* ==================================================
-           TABLE CARD
-        ================================================== */
+        .form-control,
+        .form-select {
+            min-height: 42px;
+            border-radius: 8px;
+        }
+
+
+        /* =================================================
+           TABLE
+        ================================================= */
 
         .table-card {
-
-            background:
-                #ffffff;
-
-            border:
-                0;
-
-            border-radius:
-                12px;
-
-            box-shadow:
-                0 2px 10px
-                rgba(0,0,0,.06);
-
-            overflow:
-                hidden;
-
+            padding: 0;
         }
 
 
-        .table-card
-        .card-header {
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e9ecef;
+        }
 
-            background:
-                #ffffff;
 
-            border-bottom:
-                1px solid #eeeeee;
-
-            padding:
-                15px 20px;
-
-            font-weight:
-                700;
-
+        .table-header h2 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 800;
         }
 
 
         .table-responsive {
-
-            overflow-x:
-                auto;
-
+            width: 100%;
         }
 
 
         table {
-
-            margin-bottom:
-                0 !important;
-
+            margin-bottom: 0 !important;
         }
 
 
         table thead th {
-
-            background:
-                #198754;
-
-            color:
-                #ffffff;
-
-            white-space:
-                nowrap;
-
-            font-size:
-                13px;
-
-            vertical-align:
-                middle;
-
+            white-space: nowrap;
+            background: #f8f9fa;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .4px;
         }
 
 
         table tbody td {
-
-            vertical-align:
-                middle;
-
-            font-size:
-                13px;
-
+            vertical-align: middle;
+            font-size: 14px;
         }
 
 
         table tbody tr:hover {
-
-            background:
-                #f8f9fa;
-
+            background: #f8f9fa;
         }
 
 
-        /* ==================================================
-           NOMINAL
-        ================================================== */
-
-        .nominal {
-
-            text-align:
-                right;
-
-            white-space:
-                nowrap;
-
-            font-weight:
-                600;
-
-        }
-
-
-        /* ==================================================
+        /* =================================================
            PAGINATION
-        ================================================== */
+        ================================================= */
 
         #pagination {
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                center;
-
-            flex-wrap:
-                wrap;
-
-            gap:
-                5px;
-
-            padding:
-                20px;
-
+            padding: 20px;
+            flex-wrap: wrap;
+            gap: 4px;
         }
 
 
         #pagination button {
-
-            min-width:
-                38px;
-
+            min-width: 38px;
         }
 
 
-        #pagination .btn-primary {
-
-            font-weight:
-                700;
-
-        }
-
-
-        /* ==================================================
-           PERIODE
-        ================================================== */
-
-        #periode {
-
-            font-weight:
-                600;
-
-            color:
-                #198754;
-
-        }
-
-
-        /* ==================================================
-           LOADING
-        ================================================== */
+        /* =================================================
+           LOADING OVERLAY
+        ================================================= */
 
         #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
 
-            position:
-                fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
 
-            top:
-                0;
+            background: rgba(255,255,255,.92);
 
-            left:
-                0;
-
-            right:
-                0;
-
-            bottom:
-                0;
-
-            background:
-                rgba(255,255,255,.90);
-
-            z-index:
-                9999;
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                center;
-
-            flex-direction:
-                column;
-
+            font-weight: 600;
         }
 
 
-        .loading-text {
+        /* =================================================
+           RESPONSIVE
+        ================================================= */
 
-            margin-top:
-                12px;
+        @media (max-width: 767px) {
 
-            color:
-                #198754;
-
-            font-weight:
-                600;
-
-        }
-
-
-        /* ==================================================
-           FOOTER
-        ================================================== */
-
-        .footer {
-
-            margin-top:
-                30px;
-
-            padding:
-                20px 0;
-
-            text-align:
-                center;
-
-            color:
-                #6c757d;
-
-            font-size:
-                13px;
-
-        }
-
-
-        /* ==================================================
-           MOBILE
-        ================================================== */
-
-        @media (
-            max-width: 767.98px
-        ) {
-
-            .page-title {
-
-                font-size:
-                    20px;
-
+            .hero {
+                padding: 20px;
             }
 
 
-            .kpi-value {
+            .hero h1 {
+                font-size: 22px;
+            }
 
-                font-size:
-                    18px;
 
+            .kpi strong {
+                font-size: 20px;
+            }
+
+
+            .filter-card {
+                padding: 18px;
             }
 
 
             table {
-
-                min-width:
-                    900px;
-
-            }
-
-
-            #pagination {
-
-                justify-content:
-                    center;
-
+                min-width: 900px;
             }
 
         }
@@ -665,455 +311,184 @@
 <body>
 
 
-<!-- ======================================================
-     LOADING OVERLAY
+<!-- =====================================================
+     TOPBAR
 ====================================================== -->
 
-<div
-    id="loadingOverlay"
->
-
-    <div
-        class="spinner-border text-success"
-        role="status"
-    >
-
-        <span
-            class="visually-hidden"
-        >
-            Loading...
-        </span>
-
-    </div>
+<div class="topbar"></div>
 
 
-    <div
-        class="loading-text"
-    >
-
-        Memuat data transaksi...
-
-    </div>
-
-</div>
-
-
-
-<!-- ======================================================
-     NAVBAR
-====================================================== -->
-
-<nav
-    class="navbar navbar-expand-lg navbar-dkm"
->
-
-    <div
-        class="container"
-    >
-
-        <a
-            class="navbar-brand"
-            href="index.html"
-        >
-
-            <i
-                class="fa-solid fa-mosque me-2"
-            ></i>
-
-            DKM Nurul Huda
-
-        </a>
-
-
-        <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarDKM"
-        >
-
-            <span
-                class="navbar-toggler-icon"
-            ></span>
-
-        </button>
-
-
-        <div
-            class="collapse navbar-collapse"
-            id="navbarDKM"
-        >
-
-            <ul
-                class="navbar-nav ms-auto"
-            >
-
-                <li
-                    class="nav-item"
-                >
-
-                    <a
-                        class="nav-link"
-                        href="index.html"
-                    >
-
-                        <i
-                            class="fa-solid fa-chart-line me-1"
-                        ></i>
-
-                        Dashboard
-
-                    </a>
-
-                </li>
-
-
-                <li
-                    class="nav-item"
-                >
-
-                    <a
-                        class="nav-link active"
-                        href="transaksi.html"
-                    >
-
-                        <i
-                            class="fa-solid fa-list me-1"
-                        ></i>
-
-                        Transaksi
-
-                    </a>
-
-                </li>
-
-            </ul>
-
-        </div>
-
-    </div>
-
-</nav>
-
-
-
-<!-- ======================================================
+<!-- =====================================================
      MAIN
 ====================================================== -->
 
-<main
-    class="container py-4"
->
+<main class="container-fluid py-4">
+
+    <div class="page-container">
 
 
-    <!-- ==================================================
-         HEADER
-    ================================================== -->
+        <!-- =================================================
+             HEADER
+        ================================================== -->
 
-    <div
-        class="page-header"
-    >
+        <header class="hero mb-4">
 
-        <h1
-            class="page-title"
-        >
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
 
-            <i
-                class="fa-solid fa-file-invoice-dollar text-success me-2"
-            ></i>
+                <div>
 
-            Transaksi Kas DKM
-
-        </h1>
+                    <div class="eyebrow">
+                        TRANSPARANSI KEUANGAN
+                    </div>
 
 
-        <div
-            class="page-subtitle"
-        >
-
-            Musholla Nurul Huda Pondok Dewata
-
-        </div>
+                    <h1>
+                        TRANSAKSI KAS DKM
+                    </h1>
 
 
-        <div
-            class="mt-2"
-        >
+                    <p>
+                        Musholla Nurul Huda Pondok Dewata
+                    </p>
 
-            Periode:
+                </div>
 
-            <span
-                id="periode"
-            >
 
-                Semua Data
+                <div>
 
-            </span>
+                    <a
+                        href="index.html"
+                        class="btn btn-outline-success"
+                    >
+                        ← Dashboard
+                    </a>
 
-        </div>
+                </div>
 
-    </div>
+            </div>
+
+        </header>
 
 
 
-    <!-- ==================================================
-         KPI
-    ================================================== -->
+        <!-- =================================================
+             KPI
+        ================================================== -->
 
-    <div
-        class="row g-3 mb-4"
-    >
+        <section class="row g-3 mb-4">
 
 
-        <!-- TOTAL TRANSAKSI -->
+            <!-- SALDO -->
 
-        <div
-            class="col-12 col-md-6 col-xl-3"
-        >
+            <div class="col-lg-3 col-md-6">
 
-            <div
-                class="card kpi-card kpi-transaksi"
-            >
+                <div class="kpi saldo">
+
+                    <small>
+                        SALDO
+                    </small>
+
+                    <strong id="saldo">
+                        Rp 0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- MASUK -->
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="kpi masuk">
+
+                    <small>
+                        TOTAL KAS MASUK
+                    </small>
+
+                    <strong id="totalMasuk">
+                        Rp 0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- KELUAR -->
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="kpi keluar">
+
+                    <small>
+                        TOTAL KAS KELUAR
+                    </small>
+
+                    <strong id="totalKeluar">
+                        Rp 0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- JUMLAH -->
+
+            <div class="col-lg-3 col-md-6">
 
                 <div
-                    class="card-body"
+                    class="kpi"
+                    style="
+                        background:#eef2ff;
+                        color:#3b4cca;
+                    "
                 >
 
-                    <div
-                        class="kpi-icon"
-                    >
+                    <small>
+                        JUMLAH TRANSAKSI
+                    </small>
 
-                        <i
-                            class="fa-solid fa-list-ol"
-                        ></i>
-
-                    </div>
-
-
-                    <div
-                        class="kpi-title"
-                    >
-
-                        Total Transaksi
-
-                    </div>
-
-
-                    <h3
-                        id="jumlahTransaksi"
-                        class="kpi-value"
-                    >
-
+                    <strong id="jumlahTransaksi">
                         0
-
-                    </h3>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- TOTAL MASUK -->
-
-        <div
-            class="col-12 col-md-6 col-xl-3"
-        >
-
-            <div
-                class="card kpi-card kpi-masuk"
-            >
-
-                <div
-                    class="card-body"
-                >
-
-                    <div
-                        class="kpi-icon"
-                    >
-
-                        <i
-                            class="fa-solid fa-arrow-down"
-                        ></i>
-
-                    </div>
-
-
-                    <div
-                        class="kpi-title"
-                    >
-
-                        Total Kas Masuk
-
-                    </div>
-
-
-                    <h3
-                        id="totalMasuk"
-                        class="kpi-value text-success"
-                    >
-
-                        Rp0
-
-                    </h3>
+                    </strong>
 
                 </div>
 
             </div>
 
-        </div>
+        </section>
 
 
 
-        <!-- TOTAL KELUAR -->
+        <!-- =================================================
+             FILTER
+        ================================================== -->
 
-        <div
-            class="col-12 col-md-6 col-xl-3"
-        >
-
-            <div
-                class="card kpi-card kpi-keluar"
-            >
-
-                <div
-                    class="card-body"
-                >
-
-                    <div
-                        class="kpi-icon"
-                    >
-
-                        <i
-                            class="fa-solid fa-arrow-up"
-                        ></i>
-
-                    </div>
+        <section class="section-card filter-card mb-4">
 
 
-                    <div
-                        class="kpi-title"
-                    >
-
-                        Total Kas Keluar
-
-                    </div>
-
-
-                    <h3
-                        id="totalKeluar"
-                        class="kpi-value text-danger"
-                    >
-
-                        Rp0
-
-                    </h3>
-
-                </div>
-
+            <div class="filter-title">
+                Filter Transaksi
             </div>
 
-        </div>
+
+            <div class="row g-3 align-items-end">
 
 
+                <!-- =========================================
+                     DARI TANGGAL
+                ========================================== -->
 
-        <!-- SALDO -->
-
-        <div
-            class="col-12 col-md-6 col-xl-3"
-        >
-
-            <div
-                class="card kpi-card kpi-saldo"
-            >
-
-                <div
-                    class="card-body"
-                >
-
-                    <div
-                        class="kpi-icon"
-                    >
-
-                        <i
-                            class="fa-solid fa-wallet"
-                        ></i>
-
-                    </div>
-
-
-                    <div
-                        class="kpi-title"
-                    >
-
-                        Saldo
-
-                    </div>
-
-
-                    <h3
-                        id="saldo"
-                        class="kpi-value text-info"
-                    >
-
-                        Rp0
-
-                    </h3>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ==================================================
-         FILTER
-    ================================================== -->
-
-    <div
-        class="card filter-card mb-4"
-    >
-
-        <div
-            class="card-header"
-        >
-
-            <i
-                class="fa-solid fa-filter text-success me-2"
-            ></i>
-
-            Filter Transaksi
-
-        </div>
-
-
-        <div
-            class="card-body"
-        >
-
-            <div
-                class="row g-3"
-            >
-
-
-                <!-- TANGGAL MULAI -->
-
-                <div
-                    class="col-12 col-md-6 col-lg-3"
-                >
+                <div class="col-xl-2 col-lg-3 col-md-6">
 
                     <label
                         for="tanggalMulai"
                         class="form-label"
                     >
-
                         Dari Tanggal
-
                     </label>
 
 
@@ -1127,19 +502,17 @@
 
 
 
-                <!-- TANGGAL AKHIR -->
+                <!-- =========================================
+                     SAMPAI TANGGAL
+                ========================================== -->
 
-                <div
-                    class="col-12 col-md-6 col-lg-3"
-                >
+                <div class="col-xl-2 col-lg-3 col-md-6">
 
                     <label
                         for="tanggalAkhir"
                         class="form-label"
                     >
-
                         Sampai Tanggal
-
                     </label>
 
 
@@ -1153,19 +526,17 @@
 
 
 
-                <!-- JENIS -->
+                <!-- =========================================
+                     JENIS
+                ========================================== -->
 
-                <div
-                    class="col-12 col-md-6 col-lg-2"
-                >
+                <div class="col-xl-2 col-lg-2 col-md-6">
 
                     <label
                         for="filterJenis"
                         class="form-label"
                     >
-
                         Jenis
-
                     </label>
 
 
@@ -1174,30 +545,16 @@
                         class="form-select"
                     >
 
-                        <option
-                            value=""
-                        >
-
-                            Semua
-
+                        <option value="">
+                            Semua Jenis
                         </option>
 
-
-                        <option
-                            value="MASUK"
-                        >
-
+                        <option value="MASUK">
                             MASUK
-
                         </option>
 
-
-                        <option
-                            value="KELUAR"
-                        >
-
+                        <option value="KELUAR">
                             KELUAR
-
                         </option>
 
                     </select>
@@ -1206,441 +563,222 @@
 
 
 
-                <!-- KATEGORI -->
+                <!-- =========================================
+                     KATEGORI
+                ========================================== -->
 
-                <div
-                    class="col-12 col-md-6 col-lg-4"
-                >
+                <div class="col-xl-2 col-lg-2 col-md-6">
 
                     <label
                         for="filterKategori"
                         class="form-label"
                     >
-
                         Kategori
-
                     </label>
 
 
-                    <select
+                    <input
+                        type="text"
                         id="filterKategori"
-                        class="form-select"
+                        class="form-control"
+                        placeholder="Kategori..."
                     >
-
-                        <option
-                            value=""
-                        >
-
-                            Semua Kategori
-
-                        </option>
-
-
-                        <option
-                            value="BIAYA AIR"
-                        >
-
-                            Biaya Air
-
-                        </option>
-
-
-                        <option
-                            value="BIAYA KONSUMSI"
-                        >
-
-                            Biaya Konsumsi
-
-                        </option>
-
-
-                        <option
-                            value="BIAYA KOPI/TEH/SUSU"
-                        >
-
-                            Biaya Kopi/Teh/Susu
-
-                        </option>
-
-
-                        <option
-                            value="BIAYA LISTRIK"
-                        >
-
-                            Biaya Listrik
-
-                        </option>
-
-
-                        <option
-                            value="BIAYA MATERIAL"
-                        >
-
-                            Biaya Material
-
-                        </option>
-
-
-                        <option
-                            value="BIAYA PERLENGKAPAN"
-                        >
-
-                            Biaya Perlengkapan
-
-                        </option>
-
-
-                        <option
-                            value="BIAYA JASA"
-                        >
-
-                            Biaya Jasa
-
-                        </option>
-
-
-                        <option
-                            value="BIAYA KAS IBU-IBU"
-                        >
-
-                            Biaya Kas Ibu-ibu
-
-                        </option>
-
-
-                        <option
-                            value="CELENGAN KAS"
-                        >
-
-                            Celengan Kas
-
-                        </option>
-
-
-                        <option
-                            value="KOTAK AMAL"
-                        >
-
-                            Kotak Amal
-
-                        </option>
-
-
-                        <option
-                            value="LAIN-LAIN"
-                        >
-
-                            Lain-lain
-
-                        </option>
-
-
-                        <option
-                            value="LAINNYA"
-                        >
-
-                            Lainnya
-
-                        </option>
-
-                    </select>
 
                 </div>
 
 
-            </div>
+
+                <!-- =========================================
+                     BUTTON
+                ========================================== -->
+
+                <div class="col-xl-4 col-lg-4 col-md-12">
+
+                    <div class="d-flex gap-2">
 
 
-
-            <!-- BUTTON -->
-
-            <div
-                class="row mt-3"
-            >
-
-                <div
-                    class="col-12"
-                >
-
-                    <button
-                        type="button"
-                        id="btnTampilkan"
-                        class="btn btn-success me-2"
-                    >
-
-                        <i
-                            class="fa-solid fa-filter me-1"
-                        ></i>
-
-                        Tampilkan
-
-                    </button>
+                        <button
+                            type="button"
+                            id="btnTampilkan"
+                            class="btn btn-primary flex-grow-1"
+                        >
+                            Tampilkan
+                        </button>
 
 
-                    <button
-                        type="button"
-                        id="btnSemua"
-                        class="btn btn-outline-secondary"
-                    >
+                        <button
+                            type="button"
+                            id="btnSemua"
+                            class="btn btn-secondary flex-grow-1"
+                        >
+                            Semua Data
+                        </button>
 
-                        <i
-                            class="fa-solid fa-rotate-left me-1"
-                        ></i>
-
-                        Semua Data
-
-                    </button>
+                    </div>
 
                 </div>
 
             </div>
 
-        </div>
+        </section>
 
-    </div>
 
 
-
-    <!-- ==================================================
-         TABLE
-    ================================================== -->
-
-    <div
-        class="card table-card"
-    >
-
-
-        <!-- HEADER -->
-
-        <div
-            class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2"
-        >
-
-            <div>
-
-                <i
-                    class="fa-solid fa-table-list text-success me-2"
-                ></i>
-
-                Daftar Transaksi
-
-            </div>
-
-
-            <div
-                class="text-muted small"
-            >
-
-                Data per halaman:
-                <strong>20</strong>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- TABLE -->
-
-        <div
-            class="table-responsive"
-        >
-
-            <table
-                class="table table-hover table-bordered align-middle"
-            >
-
-                <thead>
-
-                    <tr>
-
-                        <th
-                            style="width:70px"
-                            class="text-center"
-                        >
-
-                            No
-
-                        </th>
-
-
-                        <th
-                            style="width:120px"
-                        >
-
-                            Tanggal
-
-                        </th>
-
-
-                        <th
-                            style="width:100px"
-                        >
-
-                            Jenis
-
-                        </th>
-
-
-                        <th
-                            style="min-width:180px"
-                        >
-
-                            Kategori
-
-                        </th>
-
-
-                        <th
-                            style="min-width:300px"
-                        >
-
-                            Keterangan
-
-                        </th>
-
-
-                        <th
-                            style="width:160px"
-                            class="text-end"
-                        >
-
-                            Nominal
-
-                        </th>
-
-
-                        <th
-                            style="width:120px"
-                        >
-
-                            Petugas
-
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody
-                    id="tbodyTransaksi"
-                >
-
-                    <tr>
-
-                        <td
-                            colspan="7"
-                            class="text-center py-4"
-                        >
-
-                            Memuat data...
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-
-
-        <!-- ==================================================
-             PAGINATION
+        <!-- =================================================
+             TABEL TRANSAKSI
         ================================================== -->
 
-        <div
-            id="pagination"
-        ></div>
+        <section class="section-card table-card mb-4">
 
 
-    </div>
+            <!-- HEADER -->
+
+            <div class="table-header">
+
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+
+                    <h2>
+                        Daftar Transaksi
+                    </h2>
 
 
+                    <span
+                        id="periode"
+                        class="text-muted small"
+                    >
+                        Semua Data
+                    </span>
 
-    <!-- ==================================================
-         BACK BUTTON
-    ================================================== -->
+                </div>
 
-    <div
-        class="mt-4"
-    >
-
-        <a
-            href="index.html"
-            class="btn btn-outline-success"
-        >
-
-            <i
-                class="fa-solid fa-arrow-left me-1"
-            ></i>
-
-            Kembali ke Dashboard
-
-        </a>
-
-    </div>
+            </div>
 
 
 
-    <!-- ==================================================
-         FOOTER
-    ================================================== -->
+            <!-- TABLE -->
 
-    <div
-        class="footer"
-    >
+            <div class="table-responsive">
 
-        <div>
+                <table class="table table-hover table-sm">
 
-            <strong>
-                Musholla Nurul Huda Pondok Dewata
-            </strong>
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                No
+                            </th>
+
+                            <th>
+                                Tanggal
+                            </th>
+
+                            <th>
+                                Jenis
+                            </th>
+
+                            <th>
+                                Kategori
+                            </th>
+
+                            <th>
+                                Keterangan
+                            </th>
+
+                            <th class="text-end">
+                                Nominal
+                            </th>
+
+                            <th>
+                                Petugas
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="tbodyTransaksi">
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="text-center py-5 text-muted"
+                            >
+                                Memuat data...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PAGINATION
+            ================================================== -->
+
+            <div
+                id="pagination"
+                class="d-flex justify-content-center align-items-center"
+            >
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             KETERANGAN
+        ================================================== -->
+
+        <div class="text-center text-muted small pb-4">
+
+            Data transaksi diambil dari laporan kas DKM.
 
         </div>
 
 
-        <div>
-
-            Laporan Kas DKM
-
-        </div>
-
     </div>
-
 
 </main>
 
 
 
-<!-- ======================================================
-     BOOTSTRAP JS
+<!-- =====================================================
+     LOADING OVERLAY
 ====================================================== -->
 
-<script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-></script>
+<div id="loadingOverlay">
+
+    <div
+        class="spinner-border text-success"
+        role="status"
+    >
+    </div>
 
 
-<!-- ======================================================
-     CONFIG
+    <div class="mt-3">
+        Memuat data transaksi...
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
 ====================================================== -->
 
-<script
-    src="js/config.js"
-></script>
+<script src="js/config.js?v=20260925"></script>
 
-
-<!-- ======================================================
-     TRANSAKSI JS
-====================================================== -->
-
-<script
-    src="js/transaksi.js"
-></script>
+<script src="js/transaksi.js?v=20260925"></script>
 
 
 </body>
