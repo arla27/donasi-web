@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Laporan Kas DKM - Musholla Nurul Huda</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="topbar"></div>
+
+<main class="container py-4">
+  <header class="hero mb-4">
+    <div>
+      <div class="eyebrow">TRANSPARANSI KEUANGAN</div>
+      <h1>LAPORAN KAS DKM</h1>
+      <p>Musholla Nurul Huda Pondok Dewata</p>
+    </div>
+    <div class="update" id="lastUpdate">Memuat...</div>
+  </header>
+
+  <section class="row g-3 mb-4">
+    <div class="col-md-4"><div class="card kpi saldo"><small>SALDO AKHIR</small><strong id="saldo">Rp 0</strong></div></div>
+    <div class="col-md-4"><div class="card kpi masuk"><small>TOTAL KAS MASUK</small><strong id="totalMasuk">Rp 0</strong></div></div>
+    <div class="col-md-4"><div class="card kpi keluar"><small>TOTAL KAS KELUAR</small><strong id="totalKeluar">Rp 0</strong></div></div>
+  </section>
+
+  <section class="row g-4">
+    <div class="col-lg-6">
+      <div class="section-card">
+        <div class="section-title green">Kas Masuk per Kategori</div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>No</th><th>Kategori</th><th class="text-center">Transaksi</th><th class="text-end">Jumlah</th></tr></thead>
+            <tbody id="tbodyRekapMasuk"><tr><td colspan="4" class="empty">Memuat data...</td></tr></tbody>
+            <tfoot><tr><th colspan="3" class="text-end">TOTAL</th><th id="totalKategoriMasuk" class="text-end">Rp 0</th></tr></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="section-card">
+        <div class="section-title red">Kas Keluar per Kategori</div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>No</th><th>Kategori</th><th class="text-center">Transaksi</th><th class="text-end">Jumlah</th></tr></thead>
+            <tbody id="tbodyRekapKeluar"><tr><td colspan="4" class="empty">Memuat data...</td></tr></tbody>
+            <tfoot><tr><th colspan="3" class="text-end">TOTAL</th><th id="totalKategoriKeluar" class="text-end">Rp 0</th></tr></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card mt-4">
+    <div class="section-head">
+      <h2>20 Transaksi Terakhir</h2>
+      <span id="lastUpdate2"></span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>No</th><th>Tanggal</th><th>Jenis</th><th>Kategori</th><th>Keterangan</th><th class="text-end">Nominal</th></tr></thead>
+        <tbody id="tbodyTerakhir"><tr><td colspan="6" class="empty">Memuat data...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="detail-button">
+      <a class="btn btn-primary" href="transaksi.html">LIHAT SEMUA TRANSAKSI →</a>
+    </div>
+  </section>
+</main>
+
+<div id="loadingOverlay"><div class="spinner-border text-success"></div><div class="mt-2">Memuat data...</div></div>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

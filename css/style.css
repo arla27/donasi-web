@@ -1,0 +1,29 @@
+*{box-sizing:border-box}
+body{margin:0;background:#f4f7f9;color:#20252b;font-family:Arial,Helvetica,sans-serif}
+.topbar{height:22px;background:#117a4b}
+.hero{background:#fff;border-radius:18px;padding:24px 28px;box-shadow:0 8px 25px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center;gap:20px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:1.5px;color:#168253;margin-bottom:5px}
+.hero h1,.page-title{font-size:30px;font-weight:800;margin:0}
+.hero p{margin:5px 0 0;color:#6c757d}
+.update{font-size:13px;color:#68717b}
+.kpi{border:0;border-radius:18px;padding:25px 28px;box-shadow:0 8px 22px rgba(0,0,0,.08);min-height:120px;border-left:6px solid}
+.kpi small,.summary-small small{font-weight:800;letter-spacing:1px;color:#68758a}
+.kpi strong{display:block;font-size:30px;margin-top:12px}
+.kpi.saldo{border-color:#1776f2}.kpi.masuk{border-color:#198754}.kpi.keluar{border-color:#dc3545}
+.section-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 5px 18px rgba(0,0,0,.07)}
+.section-title{padding:11px 16px;color:#fff;font-weight:800;font-size:18px}
+.section-title.green{background:#198754}.section-title.red{background:#dc3545}
+.table th{font-weight:800;background:#eef4f1}
+.table td,.table th{padding:10px 8px;vertical-align:middle}
+.section-card tfoot th{background:#e2f0ea}
+.section-head{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e6e6e6}
+.section-head h2{font-size:20px;margin:0}
+.empty{text-align:center;color:#7a828a;padding:25px!important}
+.detail-button,.pagination-box{padding:14px;text-align:center;border-top:1px solid #e7e7e7}
+.pagination-box{display:flex;justify-content:center;align-items:center;gap:18px}
+.summary-small{border:0;border-radius:14px;padding:18px 20px;box-shadow:0 5px 18px rgba(0,0,0,.06)}
+.summary-small strong{display:block;font-size:25px;margin-top:8px}
+#loadingOverlay{position:fixed;inset:0;background:rgba(255,255,255,.88);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9999}
+#loadingOverlay.show{display:flex}
+.form-label{font-weight:700}
+@media(max-width:767px){.hero{display:block}.update{margin-top:12px}.hero h1{font-size:24px}.kpi strong{font-size:25px}}
