@@ -2,7 +2,7 @@
 
 
 /* =========================================================
-   API
+   KONFIGURASI API
 ========================================================= */
 
 const API_URL = SHEET_URL;
@@ -21,7 +21,7 @@ const LIMIT = 20;
 
 
 /*
- * Mencegah request ganda
+ * Mencegah request bersamaan
  */
 let sedangMemuat = false;
 
@@ -32,7 +32,7 @@ let sedangMemuat = false;
 
 function formatRupiah(value) {
 
-    const number =
+    const angka =
         Number(value) || 0;
 
     return new Intl.NumberFormat(
@@ -43,14 +43,17 @@ function formatRupiah(value) {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }
-    ).format(number);
+    ).format(angka);
 
 }
 
 
 /* =========================================================
    FORMAT TANGGAL
-   HASIL: DD/MM/YYYY
+   INPUT:
+   YYYY-MM-DD
+   YYYY-MM-DDTHH:mm:ss
+   DD/MM/YYYY
 ========================================================= */
 
 function formatTanggal(value) {
@@ -64,22 +67,22 @@ function formatTanggal(value) {
         String(value).trim();
 
 
-    /* -----------------------------------------------------
-       FORMAT YYYY-MM-DD
-    ----------------------------------------------------- */
+    /*
+     * YYYY-MM-DD
+     */
 
     let match =
         str.match(
-            /^(\d{4})-(\d{2})-(\d{2})$/
+            /^(\d{4})-(\d{1,2})-(\d{1,2})$/
         );
 
 
     if (match) {
 
         return (
-            match[3] +
+            String(match[3]).padStart(2, "0") +
             "/" +
-            match[2] +
+            String(match[2]).padStart(2, "0") +
             "/" +
             match[1]
         );
@@ -87,9 +90,9 @@ function formatTanggal(value) {
     }
 
 
-    /* -----------------------------------------------------
-       FORMAT DD/MM/YYYY
-    ----------------------------------------------------- */
+    /*
+     * DD/MM/YYYY
+     */
 
     match =
         str.match(
@@ -110,9 +113,9 @@ function formatTanggal(value) {
     }
 
 
-    /* -----------------------------------------------------
-       FORMAT DD-MM-YYYY
-    ----------------------------------------------------- */
+    /*
+     * DD-MM-YYYY
+     */
 
     match =
         str.match(
@@ -133,9 +136,9 @@ function formatTanggal(value) {
     }
 
 
-    /* -----------------------------------------------------
-       ISO / JAVASCRIPT DATE
-    ----------------------------------------------------- */
+    /*
+     * ISO / JavaScript Date
+     */
 
     const d =
         new Date(str);
@@ -189,7 +192,7 @@ function setText(
 
 
 /* =========================================================
-   SHOW LOADING
+   LOADING
 ========================================================= */
 
 function showLoading() {
@@ -210,10 +213,6 @@ function showLoading() {
 }
 
 
-/* =========================================================
-   HIDE LOADING
-========================================================= */
-
 function hideLoading() {
 
     const el =
@@ -233,6 +232,30 @@ function hideLoading() {
 
 
 /* =========================================================
+   AMBIL NILAI FILTER
+========================================================= */
+
+function getFilterValue(id) {
+
+    const el =
+        document.getElementById(id);
+
+
+    if (!el) {
+
+        return "";
+
+    }
+
+
+    return String(
+        el.value || ""
+    ).trim();
+
+}
+
+
+/* =========================================================
    LOAD TRANSAKSI
 ========================================================= */
 
@@ -241,8 +264,9 @@ async function loadTransaksi(
 ) {
 
     /*
-     * Jangan jalankan dua request bersamaan.
+     * Mencegah double request
      */
+
     if (sedangMemuat) {
 
         return;
@@ -253,10 +277,13 @@ async function loadTransaksi(
     sedangMemuat = true;
 
 
+    showLoading();
+
+
     try {
 
         /* =================================================
-           VALIDASI PAGE
+           PAGE
         ================================================= */
 
         page =
@@ -278,55 +305,33 @@ async function loadTransaksi(
 
 
         /* =================================================
-           AMBIL FILTER TANGGAL
+           FILTER
         ================================================= */
 
-        const tanggalMulaiEl =
-            document.getElementById(
+        const mulai =
+            getFilterValue(
                 "tanggalMulai"
             );
 
 
-        const tanggalAkhirEl =
-            document.getElementById(
+        const akhir =
+            getFilterValue(
                 "tanggalAkhir"
             );
 
 
-        const filterJenisEl =
-            document.getElementById(
-                "filterJenis"
-            );
-
-
-        const filterKategoriEl =
-            document.getElementById(
-                "filterKategori"
-            );
-
-
-        const mulai =
-            tanggalMulaiEl
-                ? tanggalMulaiEl.value
-                : "";
-
-
-        const akhir =
-            tanggalAkhirEl
-                ? tanggalAkhirEl.value
-                : "";
-
-
         const jenis =
-            filterJenisEl
-                ? filterJenisEl.value
-                : "";
+            getFilterValue(
+                "filterJenis"
+            )
+            .toUpperCase();
 
 
         const kategori =
-            filterKategoriEl
-                ? filterKategoriEl.value
-                : "";
+            getFilterValue(
+                "filterKategori"
+            )
+            .toUpperCase();
 
 
         /* =================================================
@@ -339,9 +344,14 @@ async function loadTransaksi(
             mulai > akhir
         ) {
 
+            hideLoading();
+
             alert(
                 "Tanggal mulai tidak boleh lebih besar dari tanggal akhir."
             );
+
+            sedangMemuat =
+                false;
 
             return;
 
@@ -349,7 +359,7 @@ async function loadTransaksi(
 
 
         /* =================================================
-           BUAT PARAMETER API
+           PARAMETER API
         ================================================= */
 
         const params =
@@ -362,10 +372,6 @@ async function loadTransaksi(
         );
 
 
-        /*
-         * PAGE
-         */
-
         params.set(
             "page",
             String(page)
@@ -373,10 +379,8 @@ async function loadTransaksi(
 
 
         /*
-         * LIMIT
-         *
          * PENTING:
-         * SEKARANG 20, BUKAN 50.
+         * 20 DATA PER HALAMAN
          */
 
         params.set(
@@ -386,7 +390,7 @@ async function loadTransaksi(
 
 
         /* =================================================
-           FILTER TANGGAL MULAI
+           TANGGAL MULAI
         ================================================= */
 
         if (mulai) {
@@ -400,7 +404,7 @@ async function loadTransaksi(
 
 
         /* =================================================
-           FILTER TANGGAL AKHIR
+           TANGGAL AKHIR
         ================================================= */
 
         if (akhir) {
@@ -414,36 +418,28 @@ async function loadTransaksi(
 
 
         /* =================================================
-           FILTER JENIS
+           JENIS
         ================================================= */
 
         if (jenis) {
 
             params.set(
                 "jenis",
-                String(
-                    jenis
-                )
-                .trim()
-                .toUpperCase()
+                jenis
             );
 
         }
 
 
         /* =================================================
-           FILTER KATEGORI
+           KATEGORI
         ================================================= */
 
         if (kategori) {
 
             params.set(
                 "kategori",
-                String(
-                    kategori
-                )
-                .trim()
-                .toUpperCase()
+                kategori
             );
 
         }
@@ -462,7 +458,7 @@ async function loadTransaksi(
 
 
         /* =================================================
-           URL
+           URL API
         ================================================= */
 
         const url =
@@ -490,12 +486,12 @@ async function loadTransaksi(
         );
 
         console.log(
-            "TANGGAL MULAI:",
+            "MULAI:",
             mulai
         );
 
         console.log(
-            "TANGGAL AKHIR:",
+            "AKHIR:",
             akhir
         );
 
@@ -510,13 +506,13 @@ async function loadTransaksi(
         );
 
         console.log(
-            "API URL:",
+            "URL:",
             url
         );
 
 
         /* =================================================
-           FETCH
+           REQUEST
         ================================================= */
 
         const response =
@@ -551,7 +547,7 @@ async function loadTransaksi(
 
 
         /* =================================================
-           JSON
+           PARSE JSON
         ================================================= */
 
         let result;
@@ -562,7 +558,7 @@ async function loadTransaksi(
             result =
                 await response.json();
 
-        } catch (jsonError) {
+        } catch (error) {
 
             throw new Error(
                 "Response server tidak valid."
@@ -578,7 +574,7 @@ async function loadTransaksi(
 
 
         /* =================================================
-           VALIDASI RESPONSE
+           VALIDASI API
         ================================================= */
 
         if (
@@ -594,7 +590,7 @@ async function loadTransaksi(
 
 
         /* =================================================
-           DATA TRANSAKSI
+           DATA
         ================================================= */
 
         const data =
@@ -615,7 +611,7 @@ async function loadTransaksi(
 
 
         /* =================================================
-           KPI
+           TOTAL MASUK
         ================================================= */
 
         const totalMasuk =
@@ -624,11 +620,35 @@ async function loadTransaksi(
             ) || 0;
 
 
+        setText(
+            "totalMasuk",
+            formatRupiah(
+                totalMasuk
+            )
+        );
+
+
+        /* =================================================
+           TOTAL KELUAR
+        ================================================= */
+
         const totalKeluar =
             Number(
                 result.totalKeluar
             ) || 0;
 
+
+        setText(
+            "totalKeluar",
+            formatRupiah(
+                totalKeluar
+            )
+        );
+
+
+        /* =================================================
+           SALDO
+        ================================================= */
 
         let saldo;
 
@@ -653,28 +673,16 @@ async function loadTransaksi(
 
 
         setText(
-            "totalMasuk",
-            formatRupiah(
-                totalMasuk
-            )
-        );
-
-
-        setText(
-            "totalKeluar",
-            formatRupiah(
-                totalKeluar
-            )
-        );
-
-
-        setText(
             "saldo",
             formatRupiah(
                 saldo
             )
         );
 
+
+        /* =================================================
+           JUMLAH TRANSAKSI
+        ================================================= */
 
         setText(
             "jumlahTransaksi",
@@ -716,18 +724,8 @@ async function loadTransaksi(
         );
 
 
-        /* =================================================
-           LOG
-        ================================================= */
-
         console.log(
-            "PAGE:",
-            resultPage
-        );
-
-        console.log(
-            "LIMIT:",
-            result.limit
+            "HASIL"
         );
 
         console.log(
@@ -738,6 +736,16 @@ async function loadTransaksi(
         console.log(
             "TOTAL PAGES:",
             totalPages
+        );
+
+        console.log(
+            "PAGE:",
+            resultPage
+        );
+
+        console.log(
+            "LIMIT:",
+            result.limit
         );
 
         console.log(
@@ -769,7 +777,7 @@ async function loadTransaksi(
 
 /* =========================================================
    RENDER TABLE
-   TANPA INNERHTML UNTUK DATA API
+   MENGGUNAKAN textContent
 ========================================================= */
 
 function renderTable(
@@ -794,7 +802,7 @@ function renderTable(
 
 
     /*
-     * Hapus isi lama
+     * Bersihkan table
      */
 
     while (
@@ -855,7 +863,7 @@ function renderTable(
 
 
     /* =================================================
-       DATA
+       RENDER DATA
     ================================================= */
 
     data.forEach(
@@ -980,8 +988,10 @@ function renderTable(
 
 
             tdKeterangan.textContent =
-                item.keterangan ||
-                "-";
+                String(
+                    item.keterangan ||
+                    "-"
+                );
 
 
             /* -----------------------------------------
@@ -1015,8 +1025,10 @@ function renderTable(
 
 
             tdPetugas.textContent =
-                item.petugas ||
-                "-";
+                String(
+                    item.petugas ||
+                    "-"
+                );
 
 
             /* -----------------------------------------
@@ -1089,7 +1101,7 @@ function renderPagination(
 
 
     /*
-     * Hapus pagination lama
+     * Bersihkan pagination
      */
 
     while (
@@ -1104,7 +1116,7 @@ function renderPagination(
 
 
     /* =================================================
-       SATU HALAMAN
+       HANYA 1 HALAMAN
     ================================================= */
 
     if (
@@ -1235,14 +1247,15 @@ function renderPagination(
 
 
     /*
-     * Kalau dekat awal
+     * Dekat awal
      */
 
     if (
         page <= 3
     ) {
 
-        startPage = 1;
+        startPage =
+            1;
 
         endPage =
             Math.min(
@@ -1254,7 +1267,7 @@ function renderPagination(
 
 
     /*
-     * Kalau dekat akhir
+     * Dekat akhir
      */
 
     if (
@@ -1381,7 +1394,7 @@ function renderPagination(
 
 
     /* =================================================
-       HALAMAN TERAKHIR
+       LAST
     ================================================= */
 
     const last =
@@ -1437,17 +1450,22 @@ function renderPagination(
 
 
 /* =========================================================
-   FILTER
+   TOMBOL TAMPILKAN
 ========================================================= */
 
 function filterData() {
 
+    console.log(
+        "TOMBOL TAMPILKAN DIKLIK"
+    );
+
+
     /*
-     * Setiap kali filter berubah,
-     * kembali ke halaman 1.
+     * Selalu kembali ke halaman 1
      */
 
-    currentPage = 1;
+    currentPage =
+        1;
 
 
     loadTransaksi(
@@ -1458,10 +1476,31 @@ function filterData() {
 
 
 /* =========================================================
-   RESET FILTER
+   KOMPATIBILITAS DENGAN VERSI LAMA
+========================================================= */
+
+function filterPeriode() {
+
+    console.log(
+        "TOMBOL TAMPILKAN DIKLIK"
+    );
+
+
+    filterData();
+
+}
+
+
+/* =========================================================
+   TOMBOL SEMUA DATA
 ========================================================= */
 
 function resetFilter() {
+
+    console.log(
+        "TOMBOL SEMUA DATA DIKLIK"
+    );
+
 
     const ids = [
 
@@ -1479,15 +1518,15 @@ function resetFilter() {
     ids.forEach(
         function(id) {
 
-            const element =
+            const el =
                 document.getElementById(
                     id
                 );
 
 
-            if (element) {
+            if (el) {
 
-                element.value =
+                el.value =
                     "";
 
             }
@@ -1496,12 +1535,29 @@ function resetFilter() {
     );
 
 
-    currentPage = 1;
+    currentPage =
+        1;
 
 
     loadTransaksi(
         1
     );
+
+}
+
+
+/* =========================================================
+   KOMPATIBILITAS DENGAN VERSI LAMA
+========================================================= */
+
+function tampilkanSemuaData() {
+
+    console.log(
+        "TOMBOL SEMUA DATA DIKLIK"
+    );
+
+
+    resetFilter();
 
 }
 
@@ -1548,16 +1604,13 @@ function tampilkanError() {
         );
 
 
-    td.colSpan = 7;
+    td.colSpan =
+        7;
+
 
     td.className =
         "text-center text-danger py-4";
 
-
-    /*
-     * Jangan tampilkan error server
-     * mentah ke browser.
-     */
 
     td.textContent =
         "Data transaksi tidak dapat dimuat. Silakan coba lagi.";
@@ -1576,7 +1629,7 @@ function tampilkanError() {
 
 
 /* =========================================================
-   START
+   EVENT BUTTON
 ========================================================= */
 
 document.addEventListener(
@@ -1601,8 +1654,85 @@ document.addEventListener(
         );
 
 
-        showLoading();
+        /* =================================================
+           TOMBOL TAMPILKAN
+        ================================================= */
 
+        const btnTampilkan =
+            document.getElementById(
+                "btnTampilkan"
+            );
+
+
+        if (btnTampilkan) {
+
+            btnTampilkan.addEventListener(
+                "click",
+                function(event) {
+
+                    event.preventDefault();
+
+
+                    console.log(
+                        "TOMBOL TAMPILKAN DIKLIK"
+                    );
+
+
+                    filterData();
+
+                }
+            );
+
+        } else {
+
+            console.warn(
+                "Tombol #btnTampilkan tidak ditemukan."
+            );
+
+        }
+
+
+        /* =================================================
+           TOMBOL SEMUA DATA
+        ================================================= */
+
+        const btnSemua =
+            document.getElementById(
+                "btnSemua"
+            );
+
+
+        if (btnSemua) {
+
+            btnSemua.addEventListener(
+                "click",
+                function(event) {
+
+                    event.preventDefault();
+
+
+                    console.log(
+                        "TOMBOL SEMUA DATA DIKLIK"
+                    );
+
+
+                    resetFilter();
+
+                }
+            );
+
+        } else {
+
+            console.warn(
+                "Tombol #btnSemua tidak ditemukan."
+            );
+
+        }
+
+
+        /* =================================================
+           LOAD PERTAMA
+        ================================================= */
 
         loadTransaksi(
             1
