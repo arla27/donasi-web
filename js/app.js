@@ -1291,7 +1291,7 @@ document.addEventListener(
                 loadData();
 
             },
-            30000
+            100000
         );
 
     }
